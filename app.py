@@ -29,6 +29,37 @@ def inject_style() -> None:
     st.markdown(
         """
         <style>
+       /* Streamlit Cloud 상단 흰색 바 숨김 */
+        header[data-testid="stHeader"] {
+            display: none !important;
+            height: 0rem !important;
+        }
+
+        div[data-testid="stToolbar"] {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0rem !important;
+        }
+
+        div[data-testid="stDecoration"] {
+            display: none !important;
+        }
+
+        #MainMenu {
+            visibility: hidden !important;
+        }
+
+        footer {
+            visibility: hidden !important;
+        }
+
+        .stDeployButton {
+            display: none !important;
+        }
+
+        .block-container {
+            padding-top: 0rem !important;
+        }
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap');
 
