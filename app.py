@@ -29,37 +29,6 @@ def inject_style() -> None:
     st.markdown(
         """
         <style>
-       /* Streamlit Cloud 상단 흰색 바 숨김 */
-        header[data-testid="stHeader"] {
-            display: none !important;
-            height: 0rem !important;
-        }
-
-        div[data-testid="stToolbar"] {
-            display: none !important;
-            visibility: hidden !important;
-            height: 0rem !important;
-        }
-
-        div[data-testid="stDecoration"] {
-            display: none !important;
-        }
-
-        #MainMenu {
-            visibility: hidden !important;
-        }
-
-        footer {
-            visibility: hidden !important;
-        }
-
-        .stDeployButton {
-            display: none !important;
-        }
-
-        .block-container {
-            padding-top: 0rem !important;
-        }
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap');
 
@@ -767,9 +736,18 @@ def score_from_quantile(series: pd.Series) -> pd.Series:
 
 
 def safe_col(df: pd.DataFrame, names: List[str], default=None):
+    """여러 후보 컬럼명 중 존재하는 첫 번째 컬럼을 안전하게 반환합니다.
+
+    GitHub/CSV 업로드 과정에서 같은 이름의 컬럼이 중복 생성되는 경우가 있어
+    df[n]이 Series가 아니라 DataFrame으로 반환될 수 있습니다.
+    이 경우 첫 번째 컬럼만 사용해 Streamlit 배포 환경의 pandas 오류를 방지합니다.
+    """
     for n in names:
         if n in df.columns:
-            return df[n]
+            col = df[n]
+            if isinstance(col, pd.DataFrame):
+                col = col.iloc[:, 0]
+            return col
     return pd.Series([default] * len(df), index=df.index)
 
 
@@ -942,6 +920,11 @@ def prepare_df(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return df
     out = df.copy()
+
+    # 컬럼명 앞뒤 공백 제거 및 중복 컬럼 방지
+    out.columns = [str(c).strip() for c in out.columns]
+    out = out.loc[:, ~pd.Index(out.columns).duplicated()]
+
     rename_map = {}
     # Keep only when explicit Korean aliases appear
     if "교육청" in out.columns and "region_office" not in out.columns:
@@ -981,11 +964,16 @@ def prepare_df(df: pd.DataFrame) -> pd.DataFrame:
     out["first_choice_area_norm"] = out["first_choice_area"].replace(area_alias)
     out.loc[~out["first_choice_area_norm"].isin(AREAS), "first_choice_area_norm"] = "학업지원"
 
-    if out["student_size_score"].isna().all():
-        out["student_size_score"] = score_from_quantile(out["student_count"])
-    else:
-        missing_idx = out["student_size_score"].isna()
-        out.loc[missing_idx, "student_size_score"] = score_from_quantile(out.loc[missing_idx, "student_count"])
+    # 학생 수 규모 점수 보완
+    # pandas 3.x/Streamlit Cloud 환경에서는 빈 마스크에 Series를 대입하면 TypeError가 날 수 있어
+    # 결측이 실제로 있을 때만 채우고, 대입 시 numpy 배열로 넣어 인덱스 정렬 오류를 방지합니다.
+    missing_idx = out["student_size_score"].isna()
+    if missing_idx.all():
+        out["student_size_score"] = score_from_quantile(out["student_count"]).astype(float).to_numpy()
+    elif missing_idx.any():
+        fill_values = score_from_quantile(out.loc[missing_idx, "student_count"]).astype(float).to_numpy()
+        out.loc[missing_idx, "student_size_score"] = fill_values
+    out["student_size_score"] = pd.to_numeric(out["student_size_score"], errors="coerce").fillna(0.0)
 
     if "우선 검토 점수" in out.columns:
         out["우선 검토 점수"] = pd.to_numeric(out["우선 검토 점수"], errors="coerce")
@@ -1143,18 +1131,29 @@ def run_allocation_engine(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame,
 
     level_counts = df["school_level_group"].value_counts()
     total_count = max(int(level_counts.sum()), 1)
+
+    # 전체 학교급 선택 시 초·중·고별 예산 몫을 계산합니다.
+    # 학교 수 비중과 최소 정책비중을 함께 고려하되, 합계가 100%를 넘지 않도록 정규화합니다.
+    raw_shares = {}
+    for level in LEVELS:
+        if level_counts.get(level, 0) <= 0:
+            continue
+        raw_shares[level] = max(level_counts.get(level, 0) / total_count, LEVEL_BUDGET_SHARE.get(level, 0.0) * 0.7)
+    share_sum = sum(raw_shares.values()) or 1.0
+    normalized_shares = {level: share / share_sum for level, share in raw_shares.items()}
+    remaining_total = 0.0
+
     for level in LEVELS:
         group_df = df[df["school_level_group"] == level].copy()
         if group_df.empty:
             continue
-        share = max(level_counts.get(level, 0) / total_count, LEVEL_BUDGET_SHARE.get(level, 0.0) * 0.7)
-        budget_level = total_budget * share
+        budget_level = total_budget * normalized_shares.get(level, 0.0)
         scored = compute_scores(group_df)
         selected_df, hold_df, remaining = allocate_budget(scored, budget_override=budget_level)
         scored_parts.append(scored)
         selected_parts.append(selected_df)
         hold_parts.append(hold_df)
-        remaining_total += (remaining - budget_level)
+        remaining_total += remaining
 
     scored_all = pd.concat(scored_parts, ignore_index=True) if scored_parts else df.iloc[0:0].copy()
     selected_all = pd.concat(selected_parts, ignore_index=True) if selected_parts else scored_all.iloc[0:0].copy()
@@ -1982,6 +1981,26 @@ def main() -> None:
     render_global_filters(df)
 
     scope_df = filtered_df(df)
+    if scope_df.empty:
+        selected_office = st.session_state.get("office", "전체")
+        selected_level = st.session_state.get("school_level_pick", "전체")
+        st.warning(
+            f"현재 선택한 조건에 해당하는 학교가 없습니다. "
+            f"교육청: {selected_office} / 학교급: {selected_level}"
+        )
+        st.info("교육청 또는 학교급을 '전체'로 바꾸거나, CSV 파일에 해당 교육청·학교급 데이터가 있는지 확인해 주세요.")
+        if not df.empty and {"region_office", "school_level_group"}.issubset(df.columns):
+            combo = (
+                df.groupby(["region_office", "school_level_group"])
+                .size()
+                .reset_index(name="학교 수")
+                .sort_values(["region_office", "school_level_group"])
+            )
+            combo.columns = ["교육청", "학교급", "학교 수"]
+            st.markdown("#### 현재 CSV에 들어 있는 교육청·학교급 조합")
+            pretty_df(combo, height=360)
+        return
+
     scored, selected_df, hold_df, remaining = run_allocation_engine(scope_df)
     scored["allocated_budget"] = scored.get("allocated_budget", 0.0)
     scored["result_status"] = scored.get("result_status", "보류")
