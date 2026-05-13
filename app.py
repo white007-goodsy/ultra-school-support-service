@@ -1364,39 +1364,49 @@ def pretty_df(df: pd.DataFrame, height: int | None = None) -> None:
                 show[c] = show[c].apply(lambda x: f"{x:,.1f}" if pd.notna(x) and not float(x).is_integer() else (f"{int(x):,}" if pd.notna(x) else ""))
     st.dataframe(show, use_container_width=True, height=height or min(max(220, 46 + len(show) * 36), 560), hide_index=True)
 
-def make_score_reason(row: pd.Series) -> str:
-    """표 안에서 최종점수의 주요 산출 근거를 한 문장으로 설명합니다."""
-    reasons: List[str] = []
+def _score_reason_parts(row: pd.Series) -> Dict[str, List[str]]:
+    """최종점수 설명을 표용 요약과 상세 설명으로 나누어 구성합니다."""
+    tags: List[str] = []
+    bullets: List[str] = []
 
     try:
-        students = float(row.get("student_count", np.nan))
+        students = float(row.get("student_count", row.get("학생수", np.nan)))
     except Exception:
         students = np.nan
     if pd.notna(students):
         student_label = fmt_int(students)
         if students >= 1000:
-            reasons.append(f"학생수 {student_label}명(대규모) 반영")
+            tags.append("대규모")
+            bullets.append(f"학생 수 {student_label}명으로 같은 학교급 내 대규모 학교에 해당하여 규모 요인이 반영됨")
         elif students >= 700:
-            reasons.append(f"학생수 {student_label}명(중대규모) 반영")
+            tags.append("중대규모")
+            bullets.append(f"학생 수 {student_label}명으로 중대규모 학교에 해당하여 학생 규모 요인이 반영됨")
         elif students <= 300:
-            reasons.append(f"학생수 {student_label}명(소규모) 반영")
+            tags.append("소규모")
+            bullets.append(f"학생 수 {student_label}명으로 소규모 학교 특성이 반영됨")
         else:
-            reasons.append(f"학생수 {student_label}명 반영")
+            tags.append("학생규모")
+            bullets.append(f"학생 수 {student_label}명을 기준으로 학교 규모 점수가 반영됨")
 
     if int(row.get("has_request", 0) or 0) == 1:
-        reasons.append("학교 신청 수요 반영")
+        tags.append("신청수요")
+        bullets.append("학교가 제출한 신청 수요가 있어 신청 가점 및 계획서 적합성 판단에 반영됨")
     if int(row.get("urgent_flag", 0) or 0) == 1:
-        reasons.append("긴급 표시 반영")
+        tags.append("긴급")
+        bullets.append("긴급지원 표시가 있어 우선 검토 점수에 반영됨")
 
-    region_type = str(row.get("region_type", "")).strip()
+    region_type = str(row.get("region_type", row.get("지역유형", ""))).strip()
     if region_type in ["읍면형", "농산어촌", "도서벽지"]:
-        reasons.append(f"지역 보정({region_type})")
+        tags.append(f"{region_type} 보정")
+        bullets.append(f"지역 유형이 {region_type}이므로 접근성·지역 여건을 고려한 지역 보정이 반영됨")
     elif region_type == "도농형":
-        reasons.append("도농형 지역 일부 보정")
+        tags.append("도농형 보정")
+        bullets.append("도농형 지역 특성을 고려하여 일부 지역 보정이 반영됨")
 
-    finance_type = str(row.get("finance_type", "")).strip()
+    finance_type = str(row.get("finance_type", row.get("재정유형", ""))).strip()
     if finance_type == "사립":
-        reasons.append("재정 보정(사립)")
+        tags.append("재정보정")
+        bullets.append("재정 유형이 사립으로 표시되어 재정 여건 차이를 고려한 보정이 반영됨")
 
     try:
         facility = float(row.get("support_facility_score", np.nan))
@@ -1404,34 +1414,88 @@ def make_score_reason(row: pd.Series) -> str:
         facility = np.nan
     if pd.notna(facility):
         if facility <= 50:
-            reasons.append(f"시설 취약 점검({facility:.1f}점)")
+            tags.append("시설취약")
+            bullets.append(f"시설지원점수 {facility:.1f}점으로 시설 취약 가능성이 있어 시설 보정 검토 대상에 포함됨")
         elif facility <= 65:
-            reasons.append(f"시설 여건 일부 반영({facility:.1f}점)")
+            tags.append("시설점검")
+            bullets.append(f"시설지원점수 {facility:.1f}점으로 시설 여건이 일부 반영됨")
 
-    area = str(row.get("first_choice_area_norm", row.get("first_choice_area", ""))).strip()
+    area = str(row.get("first_choice_area_norm", row.get("지원영역", row.get("first_choice_area", "")))).strip()
     if area:
-        reasons.append(f"권장영역 {area}")
+        tags.append(area)
+        bullets.append(f"지원 영역은 {area}이며, 학교급별 권장영역 및 영역별 기준단가 계산에 반영됨")
 
     try:
         need = float(row.get("need_score", np.nan))
         plan = float(row.get("plan_score", np.nan))
         budget = float(row.get("budget_fit_score", np.nan))
         if pd.notna(need) and pd.notna(plan) and pd.notna(budget):
-            reasons.append(f"수요·계획·예산점수 {need:.1f}/{plan:.1f}/{budget:.1f}")
+            tags.append(f"종합 {need:.0f}/{plan:.0f}/{budget:.0f}")
+            bullets.append(f"수요점수 {need:.1f}점, 계획서점수 {plan:.1f}점, 예산정합성점수 {budget:.1f}점을 종합하여 최종점수를 산출함")
     except Exception:
         pass
 
-    if not reasons:
-        return "학생 규모·신청 여부·지역·재정·시설·계획서·예산 적정성을 종합 반영"
-    return " · ".join(reasons[:7])
+    if not tags:
+        tags = ["종합평가"]
+    if not bullets:
+        bullets = ["학생 규모, 신청 여부, 긴급성, 지역유형, 재정유형, 시설점수, 계획서 점수, 예산 적정성을 종합 반영함"]
+
+    # 표에서는 너무 길지 않도록 핵심 태그만 노출합니다.
+    return {"tags": tags[:5], "bullets": bullets}
+
+
+def make_score_reason_summary(row: pd.Series) -> str:
+    """표 안에 표시할 짧은 개조식 요약입니다."""
+    return " · ".join(_score_reason_parts(row)["tags"])
+
+
+def make_score_reason_detail(row: pd.Series) -> str:
+    """상세 패널에서 보여줄 근거 목록입니다."""
+    return "\n".join(_score_reason_parts(row)["bullets"])
 
 
 def add_score_reason_column(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return df
     out = df.copy()
-    out["주요 산출 근거"] = out.apply(make_score_reason, axis=1)
+    out["산출 근거 요약"] = out.apply(make_score_reason_summary, axis=1)
+    out["상세 산출 근거"] = out.apply(make_score_reason_detail, axis=1)
+    # 이전 코드와의 호환을 위해 기존 컬럼명도 짧은 요약으로 유지합니다.
+    out["주요 산출 근거"] = out["산출 근거 요약"]
     return out
+
+
+def render_score_reason_detail(df: pd.DataFrame, key_prefix: str, title: str = "선택 학교 상세 산출 근거") -> None:
+    """표 아래에서 학교를 선택하면 긴 산출 근거를 개조식으로 보여줍니다."""
+    if df.empty:
+        return
+    name_col = "school_display" if "school_display" in df.columns else ("학교" if "학교" in df.columns else None)
+    if name_col is None:
+        return
+
+    detail_df = add_score_reason_column(df.copy()) if "상세 산출 근거" not in df.columns else df.copy()
+    options = detail_df[name_col].astype(str).tolist()
+    if not options:
+        return
+    selected = st.selectbox("상세 근거를 확인할 학교 선택", options, key=f"{key_prefix}_reason_detail_select")
+    row = detail_df.iloc[options.index(selected)]
+
+    score = row.get("final_allocation_score", row.get("현재 최종점수", np.nan))
+    score_text = f" · 최종점수 {float(score):.1f}점" if pd.notna(score) else ""
+    meta = " · ".join([str(x) for x in [row.get("region_office", row.get("교육청", "")), row.get("school_level_group", row.get("학교급", "")), row.get("first_choice_area_norm", row.get("지원영역", ""))] if str(x).strip()])
+    bullets = str(row.get("상세 산출 근거", "")).split("\n")
+    items = "".join([f"<li>{b}</li>" for b in bullets if b.strip()])
+    st.markdown(
+        f"""
+        <div class='summary-box' style='min-height:auto; margin-top:0.7rem;'>
+            <div class='summary-title'>{title}</div>
+            <div class='school-name' style='margin-bottom:0.25rem;'>{selected}</div>
+            <div class='school-meta'>{meta}{score_text}</div>
+            <div class='summary-list'><ul>{items}</ul></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def bar_chart(df: pd.DataFrame, x: str, y: str, title: str, horizontal: bool = False) -> None:
@@ -1990,8 +2054,8 @@ def page_settings(base_df: pd.DataFrame) -> None:
         st.markdown(
             """
             <div class='good-note'>
-            표의 <b>주요 산출 근거</b>는 최종점수에 영향을 준 대표 요소입니다. 최종점수는 단일 사유가 아니라
-            학생수, 신청 여부, 긴급성, 지역유형, 재정유형, 시설점수, 계획서 점수, 예산 적정성 점수를 함께 반영한 결과입니다.
+            표에는 비교가 쉽도록 <b>산출 근거 요약</b>만 짧게 표시합니다. 자세한 근거는 표 아래의 <b>선택 학교 상세 산출 근거</b>에서 확인할 수 있습니다.
+            최종점수는 학생수, 신청 여부, 긴급성, 지역유형, 재정유형, 시설점수, 계획서 점수, 예산 적정성 점수를 함께 반영한 결과입니다.
             </div>
             """,
             unsafe_allow_html=True,
@@ -2009,9 +2073,9 @@ def page_settings(base_df: pd.DataFrame) -> None:
                 cols = ["school_display", "region_office", "school_level_group", "student_count", "region_type", "finance_type", "first_choice_area_norm", "final_allocation_score", "allocated_budget"]
                 temp = cur_selected[cur_selected["__rowid"].isin(newly)].copy().head(20)
                 temp = add_score_reason_column(temp)
-                cols_with_reason = [c for c in cols if c in temp.columns] + ["주요 산출 근거"]
+                cols_with_reason = [c for c in cols if c in temp.columns] + ["산출 근거 요약"]
                 show = temp[cols_with_reason]
-                show.columns = ["학교", "교육청", "학교급", "학생수", "지역유형", "재정유형", "지원영역", "최종점수", "배정예산", "주요 산출 근거"][:len(show.columns)]
+                show.columns = ["학교", "교육청", "학교급", "학생수", "지역유형", "재정유형", "지원영역", "최종점수", "배정예산", "산출 근거 요약"][:len(show.columns)]
                 pretty_df(show, height=360)
             else:
                 st.info("기본값과 비교해 새로 선정된 학교가 없습니다.")
@@ -2021,9 +2085,9 @@ def page_settings(base_df: pd.DataFrame) -> None:
                 cols = ["school_display", "region_office", "school_level_group", "student_count", "region_type", "finance_type", "first_choice_area_norm", "final_allocation_score", "allocated_budget"]
                 temp = base_selected[base_selected["__rowid"].isin(removed)].copy().head(20)
                 temp = add_score_reason_column(temp)
-                cols_with_reason = [c for c in cols if c in temp.columns] + ["주요 산출 근거"]
+                cols_with_reason = [c for c in cols if c in temp.columns] + ["산출 근거 요약"]
                 show = temp[cols_with_reason]
-                show.columns = ["학교", "교육청", "학교급", "학생수", "지역유형", "재정유형", "지원영역", "기본점수", "배정예산", "기본 산출 근거"][:len(show.columns)]
+                show.columns = ["학교", "교육청", "학교급", "학생수", "지역유형", "재정유형", "지원영역", "기본점수", "배정예산", "기본 산출 근거 요약"][:len(show.columns)]
                 pretty_df(show, height=360)
             else:
                 st.info("기본값과 비교해 제외된 학교가 없습니다.")
@@ -2043,14 +2107,15 @@ def page_settings(base_df: pd.DataFrame) -> None:
             )
             comp["순위 변화"] = comp["기본 순위"] - comp["현재 순위"]
             comp = comp.sort_values("순위 변화", ascending=False).head(15)
-            comp = add_score_reason_column(comp)
-            comp = comp.rename(columns={
+            comp_detail = add_score_reason_column(comp.copy())
+            comp_show = comp_detail.rename(columns={
                 "school_display": "학교", "region_office": "교육청", "school_level_group": "학교급",
                 "student_count": "학생수", "region_type": "지역유형", "finance_type": "재정유형",
                 "first_choice_area_norm": "지원영역", "final_allocation_score": "현재 최종점수",
             })
             st.markdown("#### 순위가 많이 올라간 학교")
-            pretty_df(comp[["학교", "교육청", "학교급", "학생수", "지역유형", "재정유형", "지원영역", "기본 순위", "현재 순위", "순위 변화", "현재 최종점수", "주요 산출 근거"]], height=420)
+            pretty_df(comp_show[["학교", "교육청", "학교급", "학생수", "지역유형", "재정유형", "지원영역", "기본 순위", "현재 순위", "순위 변화", "현재 최종점수", "산출 근거 요약"]], height=420)
+            render_score_reason_detail(comp_detail, key_prefix="rank_up_change", title="선택 학교 상세 산출 근거")
 
         st.markdown(
             """
