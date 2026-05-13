@@ -1048,11 +1048,13 @@ def prepare_df(df: pd.DataFrame) -> pd.DataFrame:
     out["first_choice_area_norm"] = out["first_choice_area"].replace(area_alias)
     out.loc[~out["first_choice_area_norm"].isin(AREAS), "first_choice_area_norm"] = "학업지원"
 
-    if out["student_size_score"].isna().all():
-        out["student_size_score"] = score_from_quantile(out["student_count"])
-    else:
-        missing_idx = out["student_size_score"].isna()
-        out.loc[missing_idx, "student_size_score"] = score_from_quantile(out.loc[missing_idx, "student_count"])
+    # student_size_score 안전 보정
+    # - Streamlit Cloud/Pandas 3.x 환경에서 부분 Series를 loc로 대입하면
+    #   일부 CSV 구조에서 TypeError가 발생할 수 있어, 전체 길이 Series로 먼저 계산한 뒤 where로 병합합니다.
+    auto_size_score = score_from_quantile(out["student_count"])
+    out["student_size_score"] = pd.to_numeric(out["student_size_score"], errors="coerce")
+    out["student_size_score"] = out["student_size_score"].where(out["student_size_score"].notna(), auto_size_score)
+    out["student_size_score"] = out["student_size_score"].fillna(0).astype(float).round(1)
 
     if "우선 검토 점수" in out.columns:
         out["우선 검토 점수"] = pd.to_numeric(out["우선 검토 점수"], errors="coerce")
