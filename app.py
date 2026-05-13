@@ -745,6 +745,18 @@ def reset_policy_config() -> None:
             st.session_state[cost_key(level, area)] = int(value)
 
 
+def keep_policy_state_alive() -> None:
+    """
+    Streamlit은 특정 페이지에서 렌더링되지 않은 위젯 key를 정리할 수 있습니다.
+    지원 기준 설정 화면의 슬라이더/입력값은 결과 화면에서도 계속 계산에 쓰여야 하므로,
+    매 실행마다 같은 값을 다시 session_state에 넣어 페이지 이동 후 초기화를 막습니다.
+    """
+    keys = POLICY_SETTING_KEYS + [cost_key(level, area) for level in LEVELS for area in AREAS]
+    for k in keys:
+        if k in st.session_state:
+            st.session_state[k] = st.session_state[k]
+
+
 def export_policy_config_json() -> str:
     payload = {
         "service": "ULTRA 학교지원 우선순위 추천 서비스",
@@ -1236,11 +1248,13 @@ def nav_buttons(options: List[str], state_key: str, columns: int | None = None) 
     cols = st.columns(columns or len(options))
     for i, opt in enumerate(options):
         is_active = current == opt
-        # 활성 탭은 라벨 그대로 (버튼 배경색으로 충분히 구분됨)
+        # Streamlit 버튼 클릭 자체가 이미 rerun을 발생시키므로, 여기서 st.rerun()을 다시 호출하지 않습니다.
+        # 추가 rerun을 걸면 설정 페이지의 위젯 값이 렌더링되지 않은 상태로 정리되어
+        # 결과 화면 이동 시 조정값이 기본값으로 돌아갈 수 있습니다.
         if cols[i].button(opt, key=f"{state_key}_{i}", use_container_width=True, type="primary" if is_active else "secondary"):
             st.session_state[state_key] = opt
-            st.rerun()
-    return st.session_state.get(state_key, options[0])
+            current = opt
+    return current
 
 
 def section_header(chip: str, title: str, desc: str) -> None:
@@ -2209,6 +2223,7 @@ def page_quality(base_df: pd.DataFrame) -> None:
 def main() -> None:
     inject_style()
     init_state()
+    keep_policy_state_alive()
     st.markdown(
         """
         <div class='title-panel'>
