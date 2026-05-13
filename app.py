@@ -1,3 +1,4 @@
+import json
 import math
 from pathlib import Path
 from typing import Dict, List, Tuple
@@ -672,6 +673,103 @@ LEVEL_POLICY_MAP = {
 LEVEL_BUDGET_SHARE = {"초등": 0.34, "중등": 0.31, "고등": 0.35}
 
 
+# ------------------------------------------------------------
+# Editable policy setting model
+# ------------------------------------------------------------
+BASE_POLICY_DEFAULTS = {
+    "budget_eok": 30,
+    "max_support": 2,
+    "request_bonus": 20,
+    "urgent_bonus": 15,
+    "size_weight": 1.0,
+    "finance_bonus": 3.0,
+    "region_bonus": 3.0,
+    "facility_bonus_top": 4.0,
+}
+POLICY_SETTING_KEYS = list(BASE_POLICY_DEFAULTS.keys())
+
+
+def cost_key(level: str, area: str) -> str:
+    return f"cost__{level}__{area}"
+
+
+def get_standard_cost(area: str, level: str) -> float:
+    """Return the editable standard cost stored in session_state."""
+    if area not in STANDARD_COSTS:
+        area = "학업지원"
+    if level not in LEVELS:
+        level = "중등"
+    default = float(STANDARD_COSTS.get(area, STANDARD_COSTS["학업지원"]).get(level, 14_000_000))
+    try:
+        return float(st.session_state.get(cost_key(level, area), default))
+    except Exception:
+        return default
+
+
+def get_policy_config() -> Dict[str, object]:
+    config = {k: st.session_state.get(k, BASE_POLICY_DEFAULTS.get(k)) for k in POLICY_SETTING_KEYS}
+    config["scenario"] = st.session_state.get("scenario", "기본형")
+    config["standard_costs"] = {
+        level: {area: int(get_standard_cost(area, level)) for area in AREAS}
+        for level in LEVELS
+    }
+    return config
+
+
+def apply_policy_config(config: Dict[str, object]) -> None:
+    if not isinstance(config, dict):
+        return
+    # scenario는 상단 selectbox 위젯과 연결되어 있어 실행 중 강제 변경하지 않습니다.
+    for k in POLICY_SETTING_KEYS:
+        if k in config:
+            st.session_state[k] = config[k]
+
+    costs = config.get("standard_costs", {})
+    if isinstance(costs, dict):
+        for level in LEVELS:
+            level_costs = costs.get(level, {})
+            if isinstance(level_costs, dict):
+                for area in AREAS:
+                    if area in level_costs:
+                        try:
+                            st.session_state[cost_key(level, area)] = int(float(level_costs[area]))
+                        except Exception:
+                            pass
+
+
+def reset_policy_config() -> None:
+    for k, v in BASE_POLICY_DEFAULTS.items():
+        st.session_state[k] = v
+    for area, mapping in STANDARD_COSTS.items():
+        for level, value in mapping.items():
+            st.session_state[cost_key(level, area)] = int(value)
+
+
+def export_policy_config_json() -> str:
+    payload = {
+        "service": "ULTRA 학교지원 우선순위 추천 서비스",
+        "version": "policy-config-v1",
+        "description": "지원 기준 설정 화면에서 저장한 배분 기준·보정계수·영역별 표준단가입니다.",
+        "config": get_policy_config(),
+    }
+    return json.dumps(payload, ensure_ascii=False, indent=2)
+
+
+def run_engine_with_config(df: pd.DataFrame, config: Dict[str, object]) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, float]:
+    """Run scoring/allocation with a temporary config, then restore current session settings."""
+    keys = POLICY_SETTING_KEYS + [cost_key(level, area) for level in LEVELS for area in AREAS]
+    old = {k: st.session_state.get(k) for k in keys}
+    try:
+        apply_policy_config(config)
+        return run_allocation_engine(df)
+    finally:
+        for k, v in old.items():
+            if v is None and k in st.session_state:
+                del st.session_state[k]
+            elif v is not None:
+                st.session_state[k] = v
+
+
 def level_caption(level: str) -> str:
     return f"{level} 기준 별도 계산" if level != "전체" else "초·중·고를 분리 계산한 전체 요약"
 
@@ -736,18 +834,9 @@ def score_from_quantile(series: pd.Series) -> pd.Series:
 
 
 def safe_col(df: pd.DataFrame, names: List[str], default=None):
-    """여러 후보 컬럼명 중 존재하는 첫 번째 컬럼을 안전하게 반환합니다.
-
-    GitHub/CSV 업로드 과정에서 같은 이름의 컬럼이 중복 생성되는 경우가 있어
-    df[n]이 Series가 아니라 DataFrame으로 반환될 수 있습니다.
-    이 경우 첫 번째 컬럼만 사용해 Streamlit 배포 환경의 pandas 오류를 방지합니다.
-    """
     for n in names:
         if n in df.columns:
-            col = df[n]
-            if isinstance(col, pd.DataFrame):
-                col = col.iloc[:, 0]
-            return col
+            return df[n]
     return pd.Series([default] * len(df), index=df.index)
 
 
@@ -815,7 +904,7 @@ def calc_operation_coeff(area: str) -> float:
 def recommended_budget(row: pd.Series) -> float:
     level = row.get("school_level_group", "중등")
     area = row.get("first_choice_area_norm", "학업지원")
-    base = STANDARD_COSTS.get(area, STANDARD_COSTS["학업지원"]).get(level, 14_000_000)
+    base = get_standard_cost(area, level)
     return base * calc_size_coeff(float(row.get("student_count", 0) or 0)) * calc_vulnerability_coeff(row) * calc_operation_coeff(area)
 
 
@@ -920,11 +1009,6 @@ def prepare_df(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return df
     out = df.copy()
-
-    # 컬럼명 앞뒤 공백 제거 및 중복 컬럼 방지
-    out.columns = [str(c).strip() for c in out.columns]
-    out = out.loc[:, ~pd.Index(out.columns).duplicated()]
-
     rename_map = {}
     # Keep only when explicit Korean aliases appear
     if "교육청" in out.columns and "region_office" not in out.columns:
@@ -964,16 +1048,11 @@ def prepare_df(df: pd.DataFrame) -> pd.DataFrame:
     out["first_choice_area_norm"] = out["first_choice_area"].replace(area_alias)
     out.loc[~out["first_choice_area_norm"].isin(AREAS), "first_choice_area_norm"] = "학업지원"
 
-    # 학생 수 규모 점수 보완
-    # pandas 3.x/Streamlit Cloud 환경에서는 빈 마스크에 Series를 대입하면 TypeError가 날 수 있어
-    # 결측이 실제로 있을 때만 채우고, 대입 시 numpy 배열로 넣어 인덱스 정렬 오류를 방지합니다.
-    missing_idx = out["student_size_score"].isna()
-    if missing_idx.all():
-        out["student_size_score"] = score_from_quantile(out["student_count"]).astype(float).to_numpy()
-    elif missing_idx.any():
-        fill_values = score_from_quantile(out.loc[missing_idx, "student_count"]).astype(float).to_numpy()
-        out.loc[missing_idx, "student_size_score"] = fill_values
-    out["student_size_score"] = pd.to_numeric(out["student_size_score"], errors="coerce").fillna(0.0)
+    if out["student_size_score"].isna().all():
+        out["student_size_score"] = score_from_quantile(out["student_count"])
+    else:
+        missing_idx = out["student_size_score"].isna()
+        out.loc[missing_idx, "student_size_score"] = score_from_quantile(out.loc[missing_idx, "student_count"])
 
     if "우선 검토 점수" in out.columns:
         out["우선 검토 점수"] = pd.to_numeric(out["우선 검토 점수"], errors="coerce")
@@ -997,22 +1076,19 @@ def init_state() -> None:
     defaults = {
         "page": "결과 한눈에 보기",
         "sub_result": "개요",
-        "sub_settings": "기본 기준",
+        "sub_settings": "📋 기본 설정",
         "sub_eval": "계획서 요약",
         "sub_report": "점수 설명",
         "sub_quality": "신뢰도 요약",
         "office": "전체",
         "school_level_pick": "초등",
         "scenario": "기본형",
-        "budget_eok": 30,
-        "max_support": 2,
-        "request_bonus": 20,
-        "urgent_bonus": 15,
-        "size_weight": 1.0,
-        "finance_bonus": 3.0,
-        "region_bonus": 3.0,
-        "facility_bonus_top": 4.0,
+        **BASE_POLICY_DEFAULTS,
     }
+    for area, mapping in STANDARD_COSTS.items():
+        for level, value in mapping.items():
+            defaults[cost_key(level, area)] = int(value)
+
     for k, v in defaults.items():
         if k not in st.session_state:
             st.session_state[k] = v
@@ -1131,29 +1207,18 @@ def run_allocation_engine(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame,
 
     level_counts = df["school_level_group"].value_counts()
     total_count = max(int(level_counts.sum()), 1)
-
-    # 전체 학교급 선택 시 초·중·고별 예산 몫을 계산합니다.
-    # 학교 수 비중과 최소 정책비중을 함께 고려하되, 합계가 100%를 넘지 않도록 정규화합니다.
-    raw_shares = {}
-    for level in LEVELS:
-        if level_counts.get(level, 0) <= 0:
-            continue
-        raw_shares[level] = max(level_counts.get(level, 0) / total_count, LEVEL_BUDGET_SHARE.get(level, 0.0) * 0.7)
-    share_sum = sum(raw_shares.values()) or 1.0
-    normalized_shares = {level: share / share_sum for level, share in raw_shares.items()}
-    remaining_total = 0.0
-
     for level in LEVELS:
         group_df = df[df["school_level_group"] == level].copy()
         if group_df.empty:
             continue
-        budget_level = total_budget * normalized_shares.get(level, 0.0)
+        share = max(level_counts.get(level, 0) / total_count, LEVEL_BUDGET_SHARE.get(level, 0.0) * 0.7)
+        budget_level = total_budget * share
         scored = compute_scores(group_df)
         selected_df, hold_df, remaining = allocate_budget(scored, budget_override=budget_level)
         scored_parts.append(scored)
         selected_parts.append(selected_df)
         hold_parts.append(hold_df)
-        remaining_total += remaining
+        remaining_total += (remaining - budget_level)
 
     scored_all = pd.concat(scored_parts, ignore_index=True) if scored_parts else df.iloc[0:0].copy()
     selected_all = pd.concat(selected_parts, ignore_index=True) if selected_parts else scored_all.iloc[0:0].copy()
@@ -1586,64 +1651,308 @@ def page_result_overview(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_
             notice("수요·계획서·예산 적정성 세 가지 점수를 함께 반영해 순위를 정합니다.")
 
 
+def settings_persistence_panel() -> None:
+    with st.expander("💾 설정 저장·불러오기", expanded=False):
+        st.markdown(
+            """
+            <div class='good-note' style='margin-top:0;'>
+            현재 화면의 값은 조정하는 즉시 계산에 반영됩니다. 다만 Streamlit Cloud 무료 배포 환경에서는
+            브라우저를 닫거나 앱이 재시작되면 기본값으로 돌아갈 수 있으므로, 중요한 설정은 파일로 저장해 두는 방식이 안전합니다.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        a, b, c = st.columns([1, 1, 1])
+        with a:
+            if st.button("💾 현재 설정을 임시 저장", use_container_width=True):
+                st.session_state["saved_policy_config"] = get_policy_config()
+                st.session_state["saved_policy_message"] = f"저장됨: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        with b:
+            if st.button("↩️ 임시 저장값 불러오기", use_container_width=True):
+                saved = st.session_state.get("saved_policy_config")
+                if saved:
+                    apply_policy_config(saved)
+                    st.success("임시 저장한 설정을 다시 적용했습니다.")
+                    st.rerun()
+                else:
+                    st.warning("아직 임시 저장한 설정이 없습니다.")
+        with c:
+            if st.button("🔄 기본값으로 초기화", use_container_width=True):
+                reset_policy_config()
+                st.success("기본 설정으로 초기화했습니다.")
+                st.rerun()
+
+        st.download_button(
+            "⬇️ 설정 파일 다운로드(JSON)",
+            data=export_policy_config_json(),
+            file_name="ULTRA_policy_config.json",
+            mime="application/json",
+            use_container_width=True,
+        )
+        uploaded = st.file_uploader("저장해 둔 설정 파일 불러오기", type=["json"], key="policy_config_uploader")
+        if uploaded is not None:
+            try:
+                loaded = json.loads(uploaded.getvalue().decode("utf-8"))
+                config = loaded.get("config", loaded)
+                if st.button("📂 업로드한 설정 적용", use_container_width=True):
+                    apply_policy_config(config)
+                    st.success("업로드한 설정을 적용했습니다.")
+                    st.rerun()
+            except Exception as e:
+                st.error(f"설정 파일을 읽지 못했습니다: {e}")
+
+        msg = st.session_state.get("saved_policy_message")
+        if msg:
+            st.caption(msg)
+
+
+def guidance_card(title: str, body: str) -> None:
+    st.markdown(
+        f"""
+        <div class='logic-box'>
+            <div class='logic-title'>{title}</div>
+            <div class='logic-desc'>{body}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def page_settings(base_df: pd.DataFrame) -> None:
     st.markdown("<div class='sub-tab-host'>", unsafe_allow_html=True)
     sub = nav_buttons(["📋 기본 설정", "🗂️ 영역별 단가", "⚖️ 보정 조정", "🔬 변경 효과 미리보기"], "sub_settings")
     st.markdown("</div>", unsafe_allow_html=True)
+    settings_persistence_panel()
+
     level_pick = st.session_state.get("school_level_pick", "초등")
     level_for_table = level_pick if level_pick in LEVELS else "초등"
 
     if "기본 설정" in sub:
-        section_header("배분 기준 설정", "학교급별 배분 기준을 조정합니다.", "총예산 · 지원 범위 · 우선영역 · 점수 구조")
+        section_header(
+            "배분 기준 설정",
+            "학교지원 예산을 어떤 방식으로 배분할지 정합니다.",
+            "총예산 · 학교당 지원 범위 · 신청/긴급 가점 · 학생 규모 반영 정도를 조정합니다.",
+        )
+        info1, info2, info3 = st.columns(3)
+        with info1:
+            guidance_card("① 총예산", "이번 시뮬레이션에서 쓸 전체 예산입니다. 값을 키우면 선정 학교 수가 늘어납니다.")
+        with info2:
+            guidance_card("② 가점", "신청 가점은 학교의 현장 수요, 긴급 가점은 즉시 지원 필요성을 더 강하게 반영합니다.")
+        with info3:
+            guidance_card("③ 학생 규모", "학생 수가 많은 학교를 더 반영할지 정합니다. 형평성을 중시하면 낮추고, 수혜 학생 수를 중시하면 높입니다.")
+
         c1, c2, c3 = st.columns(3)
         with c1:
-            st.slider("총예산(억 원)", 1, 200, key="budget_eok")
-            st.slider("학교당 최대 지원 수", 1, 5, key="max_support")
+            st.slider(
+                "총예산(억 원)", 1, 200, key="budget_eok",
+                help="교육청 또는 사업 단위에서 이번 배분에 사용할 전체 예산입니다.",
+            )
+            st.caption("예: 30억이면 권장예산 합계가 30억을 넘지 않는 범위에서 학교를 선정합니다.")
+            st.slider(
+                "학교당 최대 지원 영역 수", 1, 5, key="max_support",
+                help="한 학교가 여러 영역을 신청했을 때 최대 몇 개 영역까지 지원할지 정합니다.",
+            )
+            st.caption("1개는 많은 학교에 얇게 지원, 3개 이상은 복합 위기 학교에 집중 지원하는 방식입니다.")
         with c2:
-            st.number_input("신청 가점", 0, 40, key="request_bonus")
-            st.number_input("긴급 가점", 0, 40, key="urgent_bonus")
+            st.number_input(
+                "신청 가점", 0, 40, key="request_bonus",
+                help="학교가 실제로 지원을 신청한 경우 부여하는 가점입니다. 현장 수요 중심일수록 높입니다.",
+            )
+            st.caption("권장 범위: 15~25점 / 현장 신청을 강하게 반영하려면 25점 이상")
+            st.number_input(
+                "긴급 가점", 0, 40, key="urgent_bonus",
+                help="긴급 지원 필요 학교에 부여하는 가점입니다. 위기 대응형 시나리오에서 높입니다.",
+            )
+            st.caption("권장 범위: 10~20점 / 긴급 사안을 우선하려면 20점 이상")
         with c3:
-            st.number_input("학생 규모 가중치", 0.1, 2.0, key="size_weight", step=0.1)
+            st.number_input(
+                "학생 규모 가중치", 0.1, 2.0, key="size_weight", step=0.1,
+                help="학생 수가 많은 학교의 우선도를 얼마나 반영할지 정합니다.",
+            )
+            st.caption("0.5 이하는 소규모·취약 학교 배려, 1.0은 기본, 1.5 이상은 수혜 인원 중심입니다.")
             focus = ", ".join(LEVEL_FOCUS.get(level_for_table, []))
             notice(f"{level_for_table} 핵심 권장 영역: {focus}")
-        notice("학교급 변경 시 영역 우선도·표준단가·예산 기준이 함께 바뀝니다.")
+        notice("값을 바꾸면 결과가 즉시 다시 계산됩니다. 장기 보관이 필요하면 위의 '설정 파일 다운로드'를 사용하세요.")
 
     elif "영역별 단가" in sub:
-        section_header("영역별 표준단가", "학교급별 기준단가를 확인합니다.", f"현재 기준: {level_for_table}")
+        section_header(
+            "영역별 표준단가",
+            "권장예산 계산의 출발점이 되는 기준단가를 조정합니다.",
+            f"현재 편집 기준: {level_for_table} · 기준단가 × 학생수/취약성/운영난이도 보정 = 학교별 권장예산",
+        )
+        st.markdown(
+            """
+            <div class='good-note'>
+            표준단가는 '이 영역을 한 학교에서 운영하려면 기본적으로 어느 정도가 필요한가'를 나타내는 기준값입니다.
+            실제 운영에서는 교육청의 목적사업비 승인액, 학교 신청액, 이전 집행액의 중앙값을 반영해 보정할 수 있습니다.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
         rows = []
         for area, mapping in STANDARD_COSTS.items():
+            current = int(get_standard_cost(area, level_for_table))
+            default = int(mapping[level_for_table])
+            diff = current - default
             rows.append({
                 "영역": area,
-                "초등": fmt_money(mapping["초등"]),
-                "중등": fmt_money(mapping["중등"]),
-                "고등": fmt_money(mapping["고등"]),
-                "현재 학교급 기준": fmt_money(mapping.get(level_for_table, mapping["중등"])),
+                "초등": fmt_money(get_standard_cost(area, "초등")),
+                "중등": fmt_money(get_standard_cost(area, "중등")),
+                "고등": fmt_money(get_standard_cost(area, "고등")),
+                "현재 기준단가": fmt_money(current),
+                "기본값 대비": fmt_money(diff) if diff else "변동 없음",
             })
         pretty_df(pd.DataFrame(rows))
-        notice("표준단가는 실제 승인·집행 사례 중앙값 기준이며 지속 보정 가능합니다.")
+
+        st.markdown("#### 현재 학교급 기준단가 직접 조정")
+        c_left, c_right = st.columns(2)
+        for idx, area in enumerate(AREAS):
+            col = c_left if idx % 2 == 0 else c_right
+            with col:
+                default = int(STANDARD_COSTS[area][level_for_table])
+                st.number_input(
+                    f"{level_for_table} · {area}",
+                    min_value=1_000_000,
+                    max_value=100_000_000,
+                    step=1_000_000,
+                    key=cost_key(level_for_table, area),
+                    help=f"기본값: {fmt_money(default)}. 이 값은 권장예산 산출의 출발 단가입니다.",
+                )
+        r1, r2 = st.columns(2)
+        with r1:
+            if st.button(f"↩️ {level_for_table} 단가만 기본값으로 되돌리기", use_container_width=True):
+                for area in AREAS:
+                    st.session_state[cost_key(level_for_table, area)] = int(STANDARD_COSTS[area][level_for_table])
+                st.rerun()
+        with r2:
+            st.caption("다른 학교급 단가는 상단의 학교급 선택을 바꾼 뒤 조정하세요.")
+        notice("현재 표준단가는 시연용 기준값이며, 실제 운영 시 교육청 승인·집행액의 중앙값을 반영해 지속 보정할 수 있습니다.")
 
     elif "보정 조정" in sub:
-        section_header("가중치 설정", "보정 계수를 조정합니다.", "재정·지역·시설 보정 값과 현재 배분 공식 확인")
+        section_header(
+            "보정계수 설정",
+            "같은 신청이라도 더 배려해야 할 학교의 조건을 반영합니다.",
+            "재정유형·지역여건·시설취약성 보정값을 조정하고, 현재 배분 공식을 확인합니다.",
+        )
+        guide_cols = st.columns(3)
+        with guide_cols[0]:
+            guidance_card("재정 보정", "사립 등 재정 여건 차이를 반영합니다. 재정 형평성을 강조할수록 높입니다.")
+        with guide_cols[1]:
+            guidance_card("지역 보정", "읍면형·농산어촌·도서벽지 등 접근성·지역 여건 차이를 반영합니다.")
+        with guide_cols[2]:
+            guidance_card("시설 보정", "시설점수 하위 25% 학교의 물리적 여건을 더 강하게 반영합니다.")
+
         a, b, c = st.columns(3)
         with a:
-            st.number_input("재정 보정(사립)", 0.0, 10.0, key="finance_bonus", step=0.5)
-            st.number_input("지역 보정", 0.0, 10.0, key="region_bonus", step=0.5)
+            st.number_input(
+                "재정 보정(사립)", 0.0, 10.0, key="finance_bonus", step=0.5,
+                help="사립 학교에 추가로 부여하는 보정점수입니다. 0이면 재정유형 보정을 하지 않습니다.",
+            )
+            st.caption("권장: 2~4점 / 재정 형평성 강화 시 5점 이상")
         with b:
-            st.number_input("시설 보정(하위 25%)", 0.0, 10.0, key="facility_bonus_top", step=0.5)
+            st.number_input(
+                "지역 보정", 0.0, 10.0, key="region_bonus", step=0.5,
+                help="농산어촌·도서벽지·읍면형 학교에 추가로 부여하는 보정점수입니다.",
+            )
+            st.caption("권장: 2~4점 / 지역 격차 완화 강조 시 5점 이상")
         with c:
-            logic_text = "최종배분점수 = 0.45×수요점수 + 0.35×계획서점수 + 0.20×예산정합성점수"
-            st.markdown(f"<div class='logic-box'><div class='logic-title'>현재 서비스 해석식</div><div class='logic-desc'>{logic_text}</div></div>", unsafe_allow_html=True)
-        notice("학교급별 엔진이 분리 실행되므로, 같은 가중치도 학교급마다 결과가 다릅니다.")
+            st.number_input(
+                "시설 보정(하위 25%)", 0.0, 10.0, key="facility_bonus_top", step=0.5,
+                help="시설점수가 낮은 하위 25% 학교에 추가로 부여하는 보정점수입니다.",
+            )
+            st.caption("권장: 3~5점 / 노후·공간 부족 반영 강화 시 6점 이상")
+
+        logic_text = "최종배분점수 = 0.45×수요점수 + 0.35×계획서점수 + 0.20×예산정합성점수"
+        st.markdown(f"<div class='logic-box'><div class='logic-title'>현재 서비스 해석식</div><div class='logic-desc'>{logic_text}</div></div>", unsafe_allow_html=True)
+        st.markdown(
+            """
+            <div class='warn-note'>
+            보정값을 높이면 해당 조건의 학교가 상위권으로 올라올 가능성이 커집니다. 다만 너무 높이면 신청 내용이나 예산 적정성보다 특정 조건이 과도하게 작동할 수 있습니다.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     else:
-        section_header("시뮬레이션 영향", "기준 변경 시 예상 영향을 확인합니다.", f"기준: {level_for_table}")
-        preview = pd.DataFrame({
-            "조정 항목": ["신청 가점", "긴급 가점", "시설 보정", "학생 규모 가중치"],
-            "예상 영향": ["신청학교 반영 증가", "긴급학교 우선도 증가", "시설 취약 학교 반영 증가", "대규모 학교 우선도 변화"],
-        })
-        pretty_df(preview)
-        notice("전체 보기는 학교급 분리 계산 후 합산, 개별 보기는 해당 학교급 결과만 표시합니다.")
+        section_header(
+            "변경 효과 미리보기",
+            "현재 설정이 기본값과 비교해 결과를 어떻게 바꾸는지 확인합니다.",
+            f"기준: {level_for_table} · 선정 학교 수, 예산 사용액, 순위 변화, 신규 선정 학교를 비교합니다.",
+        )
+        if base_df.empty:
+            st.info("비교할 데이터가 없습니다.")
+            return
 
+        current_config = get_policy_config()
+        default_config = {**BASE_POLICY_DEFAULTS, "scenario": "기본형", "standard_costs": {level: {area: int(STANDARD_COSTS[area][level]) for area in AREAS} for level in LEVELS}}
+        base_scored, base_selected, _, base_remaining = run_engine_with_config(base_df, default_config)
+        cur_scored, cur_selected, _, cur_remaining = run_engine_with_config(base_df, current_config)
+
+        total_budget = float(st.session_state.get("budget_eok", 30)) * 100_000_000
+        base_budget = base_selected["allocated_budget"].sum() if not base_selected.empty else 0
+        cur_budget = cur_selected["allocated_budget"].sum() if not cur_selected.empty else 0
+        m1, m2, m3, m4 = st.columns(4)
+        with m1:
+            metric_card("기본값 선정", f"{len(base_selected):,}개교", "기본 설정 기준")
+        with m2:
+            metric_card("현재 설정 선정", f"{len(cur_selected):,}개교", f"변화 {len(cur_selected)-len(base_selected):+,.0f}개교")
+        with m3:
+            metric_card("예산 사용액 변화", fmt_money(cur_budget - base_budget), "현재 - 기본")
+        with m4:
+            usage = 0 if total_budget <= 0 else cur_budget / total_budget * 100
+            metric_card("현재 예산 사용률", f"{usage:.1f}%", f"잔액 {fmt_money(cur_remaining)}")
+
+        base_ids = set(base_selected.get("__rowid", pd.Series(dtype=int)).tolist()) if not base_selected.empty else set()
+        cur_ids = set(cur_selected.get("__rowid", pd.Series(dtype=int)).tolist()) if not cur_selected.empty else set()
+        newly = cur_ids - base_ids
+        removed = base_ids - cur_ids
+
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("#### 현재 설정에서 새로 선정된 학교")
+            if newly and not cur_selected.empty:
+                cols = ["school_display", "region_office", "school_level_group", "first_choice_area_norm", "final_allocation_score", "allocated_budget"]
+                show = cur_selected[cur_selected["__rowid"].isin(newly)][[c for c in cols if c in cur_selected.columns]].head(20)
+                show.columns = ["학교", "교육청", "학교급", "지원영역", "최종점수", "배정예산"][:len(show.columns)]
+                pretty_df(show, height=320)
+            else:
+                st.info("기본값과 비교해 새로 선정된 학교가 없습니다.")
+        with c2:
+            st.markdown("#### 현재 설정에서 제외된 학교")
+            if removed and not base_selected.empty:
+                cols = ["school_display", "region_office", "school_level_group", "first_choice_area_norm", "final_allocation_score", "allocated_budget"]
+                show = base_selected[base_selected["__rowid"].isin(removed)][[c for c in cols if c in base_selected.columns]].head(20)
+                show.columns = ["학교", "교육청", "학교급", "지원영역", "최종점수", "배정예산"][:len(show.columns)]
+                pretty_df(show, height=320)
+            else:
+                st.info("기본값과 비교해 제외된 학교가 없습니다.")
+
+        if not base_scored.empty and not cur_scored.empty and "__rowid" in base_scored.columns and "__rowid" in cur_scored.columns:
+            base_rank = base_scored.sort_values(["final_allocation_score", "우선 검토 점수"], ascending=[False, False]).copy()
+            cur_rank = cur_scored.sort_values(["final_allocation_score", "우선 검토 점수"], ascending=[False, False]).copy()
+            base_rank["기본 순위"] = range(1, len(base_rank) + 1)
+            cur_rank["현재 순위"] = range(1, len(cur_rank) + 1)
+            comp = cur_rank[["__rowid", "school_display", "region_office", "school_level_group", "final_allocation_score", "현재 순위"]].merge(
+                base_rank[["__rowid", "기본 순위"]], on="__rowid", how="left"
+            )
+            comp["순위 변화"] = comp["기본 순위"] - comp["현재 순위"]
+            comp = comp.sort_values("순위 변화", ascending=False).head(15)
+            comp = comp.rename(columns={
+                "school_display": "학교", "region_office": "교육청", "school_level_group": "학교급",
+                "final_allocation_score": "현재 최종점수",
+            })
+            st.markdown("#### 순위가 많이 올라간 학교")
+            pretty_df(comp[["학교", "교육청", "학교급", "기본 순위", "현재 순위", "순위 변화", "현재 최종점수"]], height=360)
+
+        st.markdown(
+            """
+            <div class='good-note'>
+            '변경 효과 미리보기'는 저장 기능이 아니라, 지금 조정한 기준이 기본 기준 대비 어떤 학교를 더 우선하게 만드는지 검토하는 화면입니다.
+            심사·보고서에서는 이 화면을 근거로 '가중치를 바꾸어도 결과가 어떻게 달라지는지 검증했다'고 설명할 수 있습니다.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
 
 def page_application_eval(base_df: pd.DataFrame, selected_df: pd.DataFrame) -> None:
@@ -2021,7 +2330,7 @@ def main() -> None:
     if "결과 한눈에 보기" in page:
         page_result_overview(scored, selected_df, hold_df, remaining)
     elif "지원 기준 설정" in page:
-        page_settings(scored)
+        page_settings(scope_df)
     elif "학교별 평가·예산" in page:
         page_application_eval(scored, selected_df)
     elif "학교 상세 보기" in page:
