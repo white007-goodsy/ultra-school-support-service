@@ -1364,6 +1364,75 @@ def pretty_df(df: pd.DataFrame, height: int | None = None) -> None:
                 show[c] = show[c].apply(lambda x: f"{x:,.1f}" if pd.notna(x) and not float(x).is_integer() else (f"{int(x):,}" if pd.notna(x) else ""))
     st.dataframe(show, use_container_width=True, height=height or min(max(220, 46 + len(show) * 36), 560), hide_index=True)
 
+def make_score_reason(row: pd.Series) -> str:
+    """표 안에서 최종점수의 주요 산출 근거를 한 문장으로 설명합니다."""
+    reasons: List[str] = []
+
+    try:
+        students = float(row.get("student_count", np.nan))
+    except Exception:
+        students = np.nan
+    if pd.notna(students):
+        student_label = fmt_int(students)
+        if students >= 1000:
+            reasons.append(f"학생수 {student_label}명(대규모) 반영")
+        elif students >= 700:
+            reasons.append(f"학생수 {student_label}명(중대규모) 반영")
+        elif students <= 300:
+            reasons.append(f"학생수 {student_label}명(소규모) 반영")
+        else:
+            reasons.append(f"학생수 {student_label}명 반영")
+
+    if int(row.get("has_request", 0) or 0) == 1:
+        reasons.append("학교 신청 수요 반영")
+    if int(row.get("urgent_flag", 0) or 0) == 1:
+        reasons.append("긴급 표시 반영")
+
+    region_type = str(row.get("region_type", "")).strip()
+    if region_type in ["읍면형", "농산어촌", "도서벽지"]:
+        reasons.append(f"지역 보정({region_type})")
+    elif region_type == "도농형":
+        reasons.append("도농형 지역 일부 보정")
+
+    finance_type = str(row.get("finance_type", "")).strip()
+    if finance_type == "사립":
+        reasons.append("재정 보정(사립)")
+
+    try:
+        facility = float(row.get("support_facility_score", np.nan))
+    except Exception:
+        facility = np.nan
+    if pd.notna(facility):
+        if facility <= 50:
+            reasons.append(f"시설 취약 점검({facility:.1f}점)")
+        elif facility <= 65:
+            reasons.append(f"시설 여건 일부 반영({facility:.1f}점)")
+
+    area = str(row.get("first_choice_area_norm", row.get("first_choice_area", ""))).strip()
+    if area:
+        reasons.append(f"권장영역 {area}")
+
+    try:
+        need = float(row.get("need_score", np.nan))
+        plan = float(row.get("plan_score", np.nan))
+        budget = float(row.get("budget_fit_score", np.nan))
+        if pd.notna(need) and pd.notna(plan) and pd.notna(budget):
+            reasons.append(f"수요·계획·예산점수 {need:.1f}/{plan:.1f}/{budget:.1f}")
+    except Exception:
+        pass
+
+    if not reasons:
+        return "학생 규모·신청 여부·지역·재정·시설·계획서·예산 적정성을 종합 반영"
+    return " · ".join(reasons[:7])
+
+
+def add_score_reason_column(df: pd.DataFrame) -> pd.DataFrame:
+    if df.empty:
+        return df
+    out = df.copy()
+    out["주요 산출 근거"] = out.apply(make_score_reason, axis=1)
+    return out
+
 
 def bar_chart(df: pd.DataFrame, x: str, y: str, title: str, horizontal: bool = False) -> None:
     if df.empty:
@@ -1918,6 +1987,16 @@ def page_settings(base_df: pd.DataFrame) -> None:
             usage = 0 if total_budget <= 0 else cur_budget / total_budget * 100
             metric_card("현재 예산 사용률", f"{usage:.1f}%", f"잔액 {fmt_money(cur_remaining)}")
 
+        st.markdown(
+            """
+            <div class='good-note'>
+            표의 <b>주요 산출 근거</b>는 최종점수에 영향을 준 대표 요소입니다. 최종점수는 단일 사유가 아니라
+            학생수, 신청 여부, 긴급성, 지역유형, 재정유형, 시설점수, 계획서 점수, 예산 적정성 점수를 함께 반영한 결과입니다.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
         base_ids = set(base_selected.get("__rowid", pd.Series(dtype=int)).tolist()) if not base_selected.empty else set()
         cur_ids = set(cur_selected.get("__rowid", pd.Series(dtype=int)).tolist()) if not cur_selected.empty else set()
         newly = cur_ids - base_ids
@@ -1927,19 +2006,25 @@ def page_settings(base_df: pd.DataFrame) -> None:
         with c1:
             st.markdown("#### 현재 설정에서 새로 선정된 학교")
             if newly and not cur_selected.empty:
-                cols = ["school_display", "region_office", "school_level_group", "first_choice_area_norm", "final_allocation_score", "allocated_budget"]
-                show = cur_selected[cur_selected["__rowid"].isin(newly)][[c for c in cols if c in cur_selected.columns]].head(20)
-                show.columns = ["학교", "교육청", "학교급", "지원영역", "최종점수", "배정예산"][:len(show.columns)]
-                pretty_df(show, height=320)
+                cols = ["school_display", "region_office", "school_level_group", "student_count", "region_type", "finance_type", "first_choice_area_norm", "final_allocation_score", "allocated_budget"]
+                temp = cur_selected[cur_selected["__rowid"].isin(newly)].copy().head(20)
+                temp = add_score_reason_column(temp)
+                cols_with_reason = [c for c in cols if c in temp.columns] + ["주요 산출 근거"]
+                show = temp[cols_with_reason]
+                show.columns = ["학교", "교육청", "학교급", "학생수", "지역유형", "재정유형", "지원영역", "최종점수", "배정예산", "주요 산출 근거"][:len(show.columns)]
+                pretty_df(show, height=360)
             else:
                 st.info("기본값과 비교해 새로 선정된 학교가 없습니다.")
         with c2:
             st.markdown("#### 현재 설정에서 제외된 학교")
             if removed and not base_selected.empty:
-                cols = ["school_display", "region_office", "school_level_group", "first_choice_area_norm", "final_allocation_score", "allocated_budget"]
-                show = base_selected[base_selected["__rowid"].isin(removed)][[c for c in cols if c in base_selected.columns]].head(20)
-                show.columns = ["학교", "교육청", "학교급", "지원영역", "최종점수", "배정예산"][:len(show.columns)]
-                pretty_df(show, height=320)
+                cols = ["school_display", "region_office", "school_level_group", "student_count", "region_type", "finance_type", "first_choice_area_norm", "final_allocation_score", "allocated_budget"]
+                temp = base_selected[base_selected["__rowid"].isin(removed)].copy().head(20)
+                temp = add_score_reason_column(temp)
+                cols_with_reason = [c for c in cols if c in temp.columns] + ["주요 산출 근거"]
+                show = temp[cols_with_reason]
+                show.columns = ["학교", "교육청", "학교급", "학생수", "지역유형", "재정유형", "지원영역", "기본점수", "배정예산", "기본 산출 근거"][:len(show.columns)]
+                pretty_df(show, height=360)
             else:
                 st.info("기본값과 비교해 제외된 학교가 없습니다.")
 
@@ -1948,17 +2033,24 @@ def page_settings(base_df: pd.DataFrame) -> None:
             cur_rank = cur_scored.sort_values(["final_allocation_score", "우선 검토 점수"], ascending=[False, False]).copy()
             base_rank["기본 순위"] = range(1, len(base_rank) + 1)
             cur_rank["현재 순위"] = range(1, len(cur_rank) + 1)
-            comp = cur_rank[["__rowid", "school_display", "region_office", "school_level_group", "final_allocation_score", "현재 순위"]].merge(
+            comp_source_cols = [
+                "__rowid", "school_display", "region_office", "school_level_group", "student_count",
+                "region_type", "finance_type", "first_choice_area_norm", "need_score", "plan_score",
+                "budget_fit_score", "final_allocation_score", "현재 순위"
+            ]
+            comp = cur_rank[[c for c in comp_source_cols if c in cur_rank.columns]].merge(
                 base_rank[["__rowid", "기본 순위"]], on="__rowid", how="left"
             )
             comp["순위 변화"] = comp["기본 순위"] - comp["현재 순위"]
             comp = comp.sort_values("순위 변화", ascending=False).head(15)
+            comp = add_score_reason_column(comp)
             comp = comp.rename(columns={
                 "school_display": "학교", "region_office": "교육청", "school_level_group": "학교급",
-                "final_allocation_score": "현재 최종점수",
+                "student_count": "학생수", "region_type": "지역유형", "finance_type": "재정유형",
+                "first_choice_area_norm": "지원영역", "final_allocation_score": "현재 최종점수",
             })
             st.markdown("#### 순위가 많이 올라간 학교")
-            pretty_df(comp[["학교", "교육청", "학교급", "기본 순위", "현재 순위", "순위 변화", "현재 최종점수"]], height=360)
+            pretty_df(comp[["학교", "교육청", "학교급", "학생수", "지역유형", "재정유형", "지원영역", "기본 순위", "현재 순위", "순위 변화", "현재 최종점수", "주요 산출 근거"]], height=420)
 
         st.markdown(
             """
@@ -2162,60 +2254,228 @@ def page_school_report(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_df
 
 
 def page_quality(base_df: pd.DataFrame) -> None:
+    """자료 신뢰도를 '결측·보완·확인 필요'로 분리해 보여주는 화면."""
+    quality_options = ["🧾 점검 요약", "⬜ 원자료 미입력", "🧩 보완값 사용", "⚠️ 확인 필요 학교", "📖 결과 읽는 법"]
+    if st.session_state.get("sub_quality") not in quality_options:
+        st.session_state["sub_quality"] = quality_options[0]
+
     st.markdown("<div class='sub-tab-host'>", unsafe_allow_html=True)
-    sub = nav_buttons(["🛡️ 신뢰도 요약", "⬜ 빠진 자료 현황", "⚠️ 주의 학교 목록", "📖 결과 읽는 법"], "sub_quality")
+    sub = nav_buttons(quality_options, "sub_quality")
     st.markdown("</div>", unsafe_allow_html=True)
-    miss_cols = ["budget_total", "settlement_total", "building_area_total", "land_area_total", "support_facility_score"]
-    missing_df = pd.DataFrame({
-        "항목": miss_cols,
-        "미입력 학교 수": [int(base_df[c].isna().sum()) if c in base_df.columns else len(base_df) for c in miss_cols],
-    })
-    warnings = base_df[base_df["warning_flag"] == 1].copy()
 
-    if "신뢰도 요약" in sub:
-        section_header("데이터 신뢰도", "결측·경고 항목을 점검합니다.", "결측 = 미입력 · 실제 집행 전 원자료 재확인 필요")
-        c1, c2, c3 = st.columns(3)
+    if base_df is None or base_df.empty:
+        section_header("자료 점검", "현재 선택 조건에 해당하는 학교가 없습니다.", "교육청·학교급 필터를 조정해 주세요.")
+        st.info("표시할 데이터가 없어 결측·보완 현황을 계산하지 않았습니다.")
+        return
+
+    core_cols = {
+        "student_count": "학생수",
+        "budget_total": "예산총액",
+        "settlement_total": "결산총액",
+        "building_area_total": "교사면적",
+        "land_area_total": "학교용지면적",
+        "support_facility_score": "시설점수",
+    }
+    missing_rows = []
+    for col, label in core_cols.items():
+        missing_count = int(base_df[col].isna().sum()) if col in base_df.columns else len(base_df)
+        missing_rows.append({
+            "항목": label,
+            "원자료 컬럼": col,
+            "미입력 학교 수": missing_count,
+            "미입력 비율(%)": round(missing_count / max(len(base_df), 1) * 100, 1),
+        })
+    missing_df = pd.DataFrame(missing_rows)
+    total_missing = int(missing_df["미입력 학교 수"].sum())
+    if total_missing > 0:
+        top_row = missing_df.sort_values("미입력 학교 수", ascending=False).iloc[0]
+        top_missing_label = f"{top_row['항목']} ({int(top_row['미입력 학교 수']):,}건)"
+    else:
+        top_missing_label = "없음"
+
+    # 전처리 단계에서 보완 여부를 표시하는 *_filled_flag 컬럼이 있을 때만 보완값 사용 현황을 집계합니다.
+    filled_flag_cols = [c for c in base_df.columns if str(c).endswith("_filled_flag") or str(c).endswith("_imputed_flag")]
+    filled_rows = []
+    for flag_col in filled_flag_cols:
+        raw = base_df[flag_col]
+        if pd.api.types.is_numeric_dtype(raw):
+            count = int((pd.to_numeric(raw, errors="coerce").fillna(0) > 0).sum())
+        else:
+            normalized = raw.astype(str).str.strip().str.lower()
+            count = int(normalized.isin(["1", "true", "y", "yes", "보완", "대체", "imputed", "filled"]).sum())
+        target = flag_col.replace("_filled_flag", "").replace("_imputed_flag", "")
+        filled_rows.append({
+            "보완 항목": core_cols.get(target, target),
+            "보완 플래그 컬럼": flag_col,
+            "보완 적용 학교 수": count,
+            "보완 적용 비율(%)": round(count / max(len(base_df), 1) * 100, 1),
+        })
+    filled_df = pd.DataFrame(filled_rows) if filled_rows else pd.DataFrame(columns=["보완 항목", "보완 플래그 컬럼", "보완 적용 학교 수", "보완 적용 비율(%)"])
+    total_filled = int(filled_df["보완 적용 학교 수"].sum()) if not filled_df.empty else 0
+
+    if "warning_flag" in base_df.columns:
+        warnings = base_df[pd.to_numeric(base_df["warning_flag"], errors="coerce").fillna(0).astype(int) == 1].copy()
+    else:
+        warnings = base_df.iloc[0:0].copy()
+
+    def infer_warning_reason(row: pd.Series) -> str:
+        reasons = []
+        if pd.isna(row.get("student_count", np.nan)):
+            reasons.append("학생수 미입력")
+        else:
+            try:
+                if float(row.get("student_count", 0)) > 5000:
+                    reasons.append("학생수 이상치")
+            except Exception:
+                pass
+        if int(row.get("has_request", 0) or 0) == 1 and pd.isna(row.get("support_facility_score", np.nan)):
+            reasons.append("신청 학교의 시설점수 미입력")
+        critical_cols = ["student_count", "support_facility_score", "region_type", "finance_type"]
+        critical_missing = 0
+        for c in critical_cols:
+            value = row.get(c, np.nan)
+            if pd.isna(value) or str(value).strip() in ["", "미입력", "nan", "None"]:
+                critical_missing += 1
+        if critical_missing >= 2:
+            reasons.append("핵심 항목 2개 이상 미입력")
+        if not reasons:
+            reasons.append("원자료 추가 확인 필요")
+        return " / ".join(reasons)
+
+    if not warnings.empty:
+        warnings["확인 사유"] = warnings.apply(infer_warning_reason, axis=1)
+
+    if "점검 요약" in sub:
+        section_header(
+            "자료 점검 요약",
+            "결과를 확정하기 전에 원자료 결측, 보완값 사용 여부, 확인 필요 학교를 분리해 점검합니다.",
+            "이 화면은 학교를 탈락시키는 기준이 아니라 결과 해석의 신뢰도를 높이는 검토 단계입니다.",
+        )
+        c1, c2, c3, c4 = st.columns(4)
         with c1:
-            metric_card("추가 확인 학교 수", f"{len(warnings):,}개교")
+            metric_card("분석 대상 학교 수", f"{len(base_df):,}개교", "현재 선택 조건 기준")
         with c2:
-            metric_card("주요 미입력 합계", f"{int(missing_df['미입력 학교 수'].sum()):,}건")
+            metric_card("원자료 확인 필요 학교", f"{len(warnings):,}개교", "주의 플래그 기준")
         with c3:
-            top_missing = missing_df.sort_values("미입력 학교 수", ascending=False).iloc[0]["항목"]
-            metric_card("최다 결측 항목", str(top_missing))
-        c4, c5 = st.columns(2)
+            metric_card("주요 항목 미입력", f"{total_missing:,}건", "현재 분석용 데이터 기준")
         with c4:
-            bar_chart(missing_df, "항목", "미입력 학교 수", "항목별 미입력 현황", horizontal=True)
-        with c5:
-            warning_by_office = warnings["region_office"].value_counts().rename_axis("교육청").reset_index(name="경고 학교 수") if not warnings.empty else pd.DataFrame(columns=["교육청", "경고 학교 수"])
-            if len(warning_by_office) <= 1:
-                pretty_df(warning_by_office if not warning_by_office.empty else pd.DataFrame({"교육청": [st.session_state['office']], "경고 학교 수": [0]}))
-                notice("교육청이 1개인 경우 표로 표시합니다.")
-            else:
-                bar_chart(warning_by_office, "교육청", "경고 학교 수", "교육청별 경고 현황")
-        notice("결측은 0점이 아닌 미입력입니다. 절대값보다 상대 비교를 우선하세요.", variant="warn")
+            metric_card("최다 결측 항목", top_missing_label, "0건이면 없음")
 
-    elif "빠진 자료 현황" in sub:
-        section_header("미입력 현황", "주요 항목 결측 현황을 확인합니다.", "미입력률 높은 항목은 원자료 확인 우선")
-        missing_df["미입력 비율(%)"] = (missing_df["미입력 학교 수"] / max(len(base_df), 1) * 100).round(1)
+        c5, c6 = st.columns(2)
+        with c5:
+            st.markdown("**원자료 미입력 현황**")
+            if total_missing == 0:
+                notice("현재 선택 조건에서는 주요 항목 미입력이 없습니다.")
+            else:
+                chart_df = missing_df[missing_df["미입력 학교 수"] > 0].copy()
+                bar_chart(chart_df, "항목", "미입력 학교 수", "미입력 항목별 학교 수", horizontal=True)
+        with c6:
+            st.markdown("**확인 필요 학교 현황**")
+            warning_by_office = warnings["region_office"].value_counts().rename_axis("교육청").reset_index(name="확인 필요 학교 수") if not warnings.empty and "region_office" in warnings.columns else pd.DataFrame(columns=["교육청", "확인 필요 학교 수"])
+            if warning_by_office.empty:
+                notice("현재 선택 조건에서는 주의 플래그 학교가 없습니다.")
+            elif len(warning_by_office) <= 1:
+                pretty_df(warning_by_office)
+            else:
+                bar_chart(warning_by_office, "교육청", "확인 필요 학교 수", "교육청별 확인 필요 학교 수")
+
+        if filled_flag_cols:
+            notice(f"전처리 보완 플래그 기준 보완값 사용은 총 {total_filled:,}건입니다. 보완값은 원자료가 아니라 분석용 대체값으로 해석해야 합니다.", variant="warn")
+        else:
+            notice("현재 CSV에는 보완 여부를 구분하는 *_filled_flag 컬럼이 없습니다. 따라서 '원자료가 완전한 값'인지 '전처리로 채운 값'인지는 이 화면에서 자동 구분할 수 없습니다.", variant="warn")
+
+    elif "원자료 미입력" in sub:
+        section_header(
+            "원자료 미입력 현황",
+            "주요 분석 항목의 빈칸 여부를 확인합니다.",
+            "미입력은 0점이 아니라 원자료 확인 또는 분석용 보완이 필요한 값입니다.",
+        )
+        if total_missing == 0:
+            notice("현재 분석용 데이터 기준으로 주요 항목 미입력은 없습니다.")
+            st.markdown("<div class='small-help'>단, 전처리 과정에서 이미 보완된 데이터라면 원자료 결측이 화면에 드러나지 않을 수 있습니다.</div>", unsafe_allow_html=True)
         pretty_df(missing_df)
 
-    elif "주의 학교 목록" in sub:
-        section_header("경고 학교 목록", "추가 검토가 필요한 학교 목록입니다.", "이상치·결측이 있는 학교는 별도 검토 대상")
-        show = warnings[["school_name", "school_level_group", "region_office", "first_choice_area_norm", "student_count"]].copy() if not warnings.empty else pd.DataFrame(columns=["school_name", "school_level_group", "region_office", "first_choice_area_norm", "student_count"])
-        show.columns = ["학교명", "학교급", "교육청", "1순위 영역", "학생수"]
-        pretty_df(show)
+    elif "보완값 사용" in sub:
+        section_header(
+            "보완값 사용 현황",
+            "전처리 과정에서 결측값을 평균·중앙값·학교급 기준값 등으로 채운 경우를 따로 확인합니다.",
+            "보완값은 분석을 계속하기 위한 임시값이며, 실제 집행 전에는 원자료 확인이 필요합니다.",
+        )
+        if filled_flag_cols:
+            pretty_df(filled_df.sort_values("보완 적용 학교 수", ascending=False))
+            notice("보완값이 많을수록 자동 산출 결과를 해석할 때 신중해야 합니다. 특히 예산·시설 항목은 원자료 재확인을 권장합니다.", variant="warn")
+        else:
+            st.info("현재 CSV에는 보완 여부를 나타내는 플래그 컬럼이 없습니다.")
+            st.markdown(
+                """
+                <div class='good-note'>
+                권장 데이터 구조: 결측값을 보완했다면 <b>budget_total_filled_flag</b>, <b>support_facility_score_filled_flag</b>처럼
+                항목별 보완 여부 컬럼을 함께 저장하면 원자료와 보완값을 구분할 수 있습니다.
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    elif "확인 필요 학교" in sub:
+        section_header(
+            "원자료 확인 필요 학교 목록",
+            "자동 산출 결과를 확정하기 전에 담당자가 한 번 더 확인해야 할 학교입니다.",
+            "주의 플래그는 결측, 이상치, 핵심 항목 부족 등 원자료 검토가 필요한 신호입니다.",
+        )
+        if warnings.empty:
+            notice("현재 선택 조건에서는 원자료 확인 필요 학교가 없습니다.")
+        else:
+            show_cols = ["school_name", "school_level_group", "region_office", "first_choice_area_norm", "student_count", "확인 사유"]
+            show = warnings[[c for c in show_cols if c in warnings.columns]].copy()
+            rename = {
+                "school_name": "학교명",
+                "school_level_group": "학교급",
+                "region_office": "교육청",
+                "first_choice_area_norm": "1순위 영역",
+                "student_count": "학생수",
+            }
+            show = show.rename(columns=rename)
+            pretty_df(show, height=460)
+            notice("이 목록은 학교를 제외하기 위한 명단이 아니라 원자료를 다시 확인해야 하는 검토 목록입니다.", variant="warn")
 
     else:
-        section_header("해석 원칙", "결과를 읽을 때 함께 봐야 할 원칙입니다.", "자동 결정이 아닌 검토 보조 · 최종 판단은 담당자 몫")
-        rules = [
-            "결측은 0이 아닌 미입력 — 추가 확인 대상으로 처리합니다.",
-            "배분점수는 우선 검토 순서 제안이며, 최종 판정 도구가 아닙니다.",
-            "시연 결과는 정책 검토 지원용이며, 실제 집행 전 현장 확인이 필요합니다.",
-            "권장예산은 자동 검토이며, 최종 금액은 담당자가 확정합니다.",
-        ]
-        for r in rules:
-            notice(r)
-
+        section_header(
+            "결과 읽는 법",
+            "자료 점검 화면은 자동 추천 결과를 신뢰성 있게 해석하기 위한 보조 화면입니다.",
+            "자동 결정이 아닌 검토 보조 · 최종 판단은 담당자 몫",
+        )
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.markdown(
+                """
+                <div class='logic-box'>
+                    <div class='logic-title'>1. 원자료 미입력</div>
+                    <div class='logic-desc'>CSV에 값이 비어 있는 상태입니다. 0으로 보지 않고 원자료 확인 또는 보완 대상으로 봅니다.</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with c2:
+            st.markdown(
+                """
+                <div class='logic-box'>
+                    <div class='logic-title'>2. 보완값 사용</div>
+                    <div class='logic-desc'>분석을 위해 평균·중앙값 등으로 임시 대체한 값입니다. 실제 집행 전에는 근거 확인이 필요합니다.</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with c3:
+            st.markdown(
+                """
+                <div class='logic-box'>
+                    <div class='logic-title'>3. 확인 필요 학교</div>
+                    <div class='logic-desc'>결측·이상치·핵심 항목 부족 등으로 담당자 검토가 필요한 학교입니다. 탈락 기준이 아닙니다.</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        notice("결과 해석 원칙: 추천 점수는 우선 검토 순서 제안이며, 원자료 점검과 현장 판단을 거쳐 최종 결정해야 합니다.")
 
 # ------------------------------------------------------------
 # Main
@@ -2303,6 +2563,31 @@ def main() -> None:
         | (critical_missing_count >= 2)
     )
     df["warning_flag"] = core_warning.astype(int)
+
+    # 자료 점검 화면에서 사용자가 왜 확인해야 하는지 바로 볼 수 있도록 사유를 함께 저장합니다.
+    def _warning_reason_for_row(row: pd.Series) -> str:
+        reasons = []
+        if pd.isna(row.get("student_count", np.nan)):
+            reasons.append("학생수 미입력")
+        else:
+            try:
+                if float(row.get("student_count", 0)) > 5000:
+                    reasons.append("학생수 이상치")
+            except Exception:
+                pass
+        if int(row.get("has_request", 0) or 0) == 1 and pd.isna(row.get("support_facility_score", np.nan)):
+            reasons.append("신청 학교의 시설점수 미입력")
+        critical_cols = ["student_count", "support_facility_score", "region_type", "finance_type"]
+        critical_missing = 0
+        for c in critical_cols:
+            value = row.get(c, np.nan)
+            if pd.isna(value) or str(value).strip() in ["", "미입력", "nan", "None"]:
+                critical_missing += 1
+        if critical_missing >= 2:
+            reasons.append("핵심 항목 2개 이상 미입력")
+        return " / ".join(reasons) if reasons else ""
+
+    df["warning_reason"] = df.apply(_warning_reason_for_row, axis=1)
 
     render_global_filters(df)
 
