@@ -2319,8 +2319,8 @@ def page_school_report(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_df
 
 
 def page_quality(base_df: pd.DataFrame) -> None:
-    """자료 신뢰도를 '결측·보완·확인 필요'로 분리해 보여주는 화면."""
-    quality_options = ["🧾 점검 요약", "⬜ 원자료 미입력", "🧩 보완값 사용", "⚠️ 확인 필요 학교", "📖 결과 읽는 법"]
+    """자료 점검 화면: 원자료 결측·보완값·확인 필요 학교를 사용자가 이해하기 쉬운 검토 흐름으로 표시."""
+    quality_options = ["📌 한눈에 보기", "① 원자료 결측", "② 보완값 사용", "③ 확인 필요 학교", "📖 해석 가이드"]
     if st.session_state.get("sub_quality") not in quality_options:
         st.session_state["sub_quality"] = quality_options[0]
 
@@ -2330,67 +2330,155 @@ def page_quality(base_df: pd.DataFrame) -> None:
 
     if base_df is None or base_df.empty:
         section_header("자료 점검", "현재 선택 조건에 해당하는 학교가 없습니다.", "교육청·학교급 필터를 조정해 주세요.")
-        st.info("표시할 데이터가 없어 결측·보완 현황을 계산하지 않았습니다.")
+        st.info("표시할 데이터가 없어 결측·보완·확인 필요 학교 현황을 계산하지 않았습니다.")
         return
 
-    core_cols = {
-        "student_count": "학생수",
-        "budget_total": "예산총액",
-        "settlement_total": "결산총액",
-        "building_area_total": "교사면적",
-        "land_area_total": "학교용지면적",
-        "support_facility_score": "시설점수",
-    }
+    # ------------------------------------------------------------------
+    # 1) 원자료 결측 집계
+    # ------------------------------------------------------------------
+    core_items = [
+        {
+            "col": "student_count",
+            "label": "학생수",
+            "meaning": "학교 규모와 수혜 가능 학생 수 판단",
+            "impact": "학생 규모 점수·권장예산 보정에 영향",
+            "action": "학교 기본현황 자료 확인",
+        },
+        {
+            "col": "budget_total",
+            "label": "예산총액",
+            "meaning": "학교 재정 규모 확인",
+            "impact": "예산 적정성 해석에 영향",
+            "action": "예산서 원자료 확인",
+        },
+        {
+            "col": "settlement_total",
+            "label": "결산총액",
+            "meaning": "실제 집행 규모 확인",
+            "impact": "예산 사용 여력·집행성 판단에 영향",
+            "action": "결산서 원자료 확인",
+        },
+        {
+            "col": "building_area_total",
+            "label": "교사면적",
+            "meaning": "학교 시설 규모 확인",
+            "impact": "시설 여건·공간 부족 해석에 영향",
+            "action": "학교시설 현황 확인",
+        },
+        {
+            "col": "land_area_total",
+            "label": "학교용지면적",
+            "meaning": "학교 부지 규모 확인",
+            "impact": "시설 여건·공간 여력 해석에 영향",
+            "action": "학교시설 현황 확인",
+        },
+        {
+            "col": "support_facility_score",
+            "label": "시설점수",
+            "meaning": "시설 취약 정도를 요약한 분석용 점수",
+            "impact": "시설 보정 및 취약성 판단에 직접 영향",
+            "action": "시설점수 산출 근거 확인",
+        },
+    ]
+    label_map = {item["col"]: item["label"] for item in core_items}
+
     missing_rows = []
-    for col, label in core_cols.items():
+    for item in core_items:
+        col = item["col"]
         missing_count = int(base_df[col].isna().sum()) if col in base_df.columns else len(base_df)
         missing_rows.append({
-            "항목": label,
+            "점검 항목": item["label"],
             "원자료 컬럼": col,
+            "무엇을 뜻하나": item["meaning"],
             "미입력 학교 수": missing_count,
             "미입력 비율(%)": round(missing_count / max(len(base_df), 1) * 100, 1),
+            "결과에 미치는 영향": item["impact"],
+            "권장 조치": item["action"],
         })
     missing_df = pd.DataFrame(missing_rows)
     total_missing = int(missing_df["미입력 학교 수"].sum())
     if total_missing > 0:
         top_row = missing_df.sort_values("미입력 학교 수", ascending=False).iloc[0]
-        top_missing_label = f"{top_row['항목']} ({int(top_row['미입력 학교 수']):,}건)"
+        top_missing_label = f"{top_row['점검 항목']} {int(top_row['미입력 학교 수']):,}건"
     else:
         top_missing_label = "없음"
 
-    # 전처리 단계에서 보완 여부를 표시하는 *_filled_flag 컬럼이 있을 때만 보완값 사용 현황을 집계합니다.
-    filled_flag_cols = [c for c in base_df.columns if str(c).endswith("_filled_flag") or str(c).endswith("_imputed_flag")]
+    # ------------------------------------------------------------------
+    # 2) 보완값 사용 집계
+    # ------------------------------------------------------------------
+    filled_flag_cols = [
+        c for c in base_df.columns
+        if str(c).endswith("_filled_flag") or str(c).endswith("_imputed_flag")
+    ]
+
+    def flag_to_bool(s: pd.Series) -> pd.Series:
+        if pd.api.types.is_numeric_dtype(s):
+            return pd.to_numeric(s, errors="coerce").fillna(0) > 0
+        normalized = s.astype(str).str.strip().str.lower()
+        return normalized.isin(["1", "true", "t", "y", "yes", "보완", "대체", "imputed", "filled"])
+
     filled_rows = []
+    filled_masks = []
     for flag_col in filled_flag_cols:
-        raw = base_df[flag_col]
-        if pd.api.types.is_numeric_dtype(raw):
-            count = int((pd.to_numeric(raw, errors="coerce").fillna(0) > 0).sum())
-        else:
-            normalized = raw.astype(str).str.strip().str.lower()
-            count = int(normalized.isin(["1", "true", "y", "yes", "보완", "대체", "imputed", "filled"]).sum())
+        mask = flag_to_bool(base_df[flag_col])
+        filled_masks.append(mask)
         target = flag_col.replace("_filled_flag", "").replace("_imputed_flag", "")
+        count = int(mask.sum())
+        rate = round(count / max(len(base_df), 1) * 100, 1)
+        if rate >= 50:
+            risk = "높음"
+            action = "원자료 확보 후 재계산 권장"
+        elif rate >= 10:
+            risk = "중간"
+            action = "상위 학교 중심 원자료 확인"
+        elif rate > 0:
+            risk = "낮음"
+            action = "해당 학교만 확인"
+        else:
+            risk = "없음"
+            action = "추가 조치 낮음"
         filled_rows.append({
-            "보완 항목": core_cols.get(target, target),
+            "보완 항목": label_map.get(target, target),
             "보완 플래그 컬럼": flag_col,
             "보완 적용 학교 수": count,
-            "보완 적용 비율(%)": round(count / max(len(base_df), 1) * 100, 1),
+            "보완 적용 비율(%)": rate,
+            "해석 주의도": risk,
+            "권장 조치": action,
         })
-    filled_df = pd.DataFrame(filled_rows) if filled_rows else pd.DataFrame(columns=["보완 항목", "보완 플래그 컬럼", "보완 적용 학교 수", "보완 적용 비율(%)"])
-    total_filled = int(filled_df["보완 적용 학교 수"].sum()) if not filled_df.empty else 0
+    filled_df = pd.DataFrame(filled_rows) if filled_rows else pd.DataFrame(
+        columns=["보완 항목", "보완 플래그 컬럼", "보완 적용 학교 수", "보완 적용 비율(%)", "해석 주의도", "권장 조치"]
+    )
+    total_filled_cells = int(filled_df["보완 적용 학교 수"].sum()) if not filled_df.empty else 0
+    if filled_masks:
+        any_filled = filled_masks[0].copy()
+        for m in filled_masks[1:]:
+            any_filled = any_filled | m
+        unique_filled_schools = int(any_filled.sum())
+    else:
+        unique_filled_schools = 0
 
+    # ------------------------------------------------------------------
+    # 3) 확인 필요 학교 집계
+    # ------------------------------------------------------------------
     if "warning_flag" in base_df.columns:
-        warnings = base_df[pd.to_numeric(base_df["warning_flag"], errors="coerce").fillna(0).astype(int) == 1].copy()
+        warning_mask = pd.to_numeric(base_df["warning_flag"], errors="coerce").fillna(0).astype(int) == 1
+        warnings = base_df[warning_mask].copy()
     else:
         warnings = base_df.iloc[0:0].copy()
 
     def infer_warning_reason(row: pd.Series) -> str:
+        # 이미 main()에서 생성한 warning_reason이 있으면 우선 사용합니다.
+        existing = str(row.get("warning_reason", "")).strip()
+        if existing and existing.lower() not in ["nan", "none", ""]:
+            return existing
+
         reasons = []
         if pd.isna(row.get("student_count", np.nan)):
             reasons.append("학생수 미입력")
         else:
             try:
                 if float(row.get("student_count", 0)) > 5000:
-                    reasons.append("학생수 이상치")
+                    reasons.append("학생수 이상치·대규모 학교 확인")
             except Exception:
                 pass
         if int(row.get("has_request", 0) or 0) == 1 and pd.isna(row.get("support_facility_score", np.nan)):
@@ -2402,80 +2490,171 @@ def page_quality(base_df: pd.DataFrame) -> None:
             if pd.isna(value) or str(value).strip() in ["", "미입력", "nan", "None"]:
                 critical_missing += 1
         if critical_missing >= 2:
-            reasons.append("핵심 항목 2개 이상 미입력")
+            reasons.append("핵심 판단 항목 2개 이상 미입력")
         if not reasons:
-            reasons.append("원자료 추가 확인 필요")
+            reasons.append("점수 산출 전 원자료 추가 확인")
         return " / ".join(reasons)
+
+    def warning_action(reason: str) -> str:
+        reason = str(reason)
+        if "학생수" in reason:
+            return "학생 수 원자료와 학교 규모 확인"
+        if "시설" in reason:
+            return "시설 원자료와 시설점수 산출식 확인"
+        if "핵심" in reason or "미입력" in reason:
+            return "필수 항목 보완 후 재계산"
+        return "담당자 원자료 검토 후 확정"
 
     if not warnings.empty:
         warnings["확인 사유"] = warnings.apply(infer_warning_reason, axis=1)
+        warnings["권장 조치"] = warnings["확인 사유"].map(warning_action)
 
-    if "점검 요약" in sub:
+    # ------------------------------------------------------------------
+    # 4) 사용자용 상태 판정
+    # ------------------------------------------------------------------
+    warning_count = len(warnings)
+    if total_missing == 0 and total_filled_cells == 0 and warning_count == 0:
+        status_label = "양호"
+        status_desc = "현재 선택 조건에서는 주요 결측·보완·확인 필요 신호가 크지 않습니다."
+        status_color = "#0f8a5f"
+    elif total_missing == 0 and (total_filled_cells > 0 or warning_count > 0):
+        status_label = "검토 후 사용"
+        status_desc = "자동 추천 산출은 가능하지만, 보완값 또는 확인 필요 학교가 있어 최종 확정 전 원자료 점검이 필요합니다."
+        status_color = "#b45309"
+    else:
+        status_label = "보완 필요"
+        status_desc = "주요 항목에 미입력이 있어 결과 해석 전에 원자료 보완이 우선입니다."
+        status_color = "#b91c1c"
+
+    # ------------------------------------------------------------------
+    # 화면 구성
+    # ------------------------------------------------------------------
+    if "한눈에 보기" in sub:
         section_header(
-            "자료 점검 요약",
-            "결과를 확정하기 전에 원자료 결측, 보완값 사용 여부, 확인 필요 학교를 분리해 점검합니다.",
-            "이 화면은 학교를 탈락시키는 기준이 아니라 결과 해석의 신뢰도를 높이는 검토 단계입니다.",
+            "자료 점검 대시보드",
+            "자동 추천 결과를 확정하기 전에 데이터 상태를 한눈에 확인합니다.",
+            "원자료 결측, 전처리 보완값, 확인 필요 학교를 분리해 해석합니다.",
         )
+
+        st.markdown(
+            f"""
+            <div class='good-note' style='border-left-color:{status_color}; background:#ffffff;'>
+                <div style='font-weight:900; color:{status_color}; font-size:1.05rem; margin-bottom:0.25rem;'>현재 자료 판정: {status_label}</div>
+                <div style='color:#2c4060; line-height:1.7;'>{status_desc}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
         c1, c2, c3, c4 = st.columns(4)
         with c1:
-            metric_card("분석 대상 학교 수", f"{len(base_df):,}개교", "현재 선택 조건 기준")
+            metric_card("분석 대상", f"{len(base_df):,}개교", "현재 교육청·학교급 조건")
         with c2:
-            metric_card("원자료 확인 필요 학교", f"{len(warnings):,}개교", "주의 플래그 기준")
+            metric_card("원자료 미입력", f"{total_missing:,}건", f"최다 항목: {top_missing_label}")
         with c3:
-            metric_card("주요 항목 미입력", f"{total_missing:,}건", "현재 분석용 데이터 기준")
+            metric_card("보완값 사용", f"{unique_filled_schools:,}개교", f"항목-학교 기준 {total_filled_cells:,}건")
         with c4:
-            metric_card("최다 결측 항목", top_missing_label, "0건이면 없음")
+            metric_card("확인 필요 학교", f"{warning_count:,}개교", "탈락 기준이 아닌 점검 목록")
 
-        c5, c6 = st.columns(2)
-        with c5:
-            st.markdown("**원자료 미입력 현황**")
+        st.markdown("#### 이 화면에서 확인할 3가지")
+        a, b, c = st.columns(3)
+        with a:
+            st.markdown(
+                """
+                <div class='logic-box'>
+                    <div class='logic-title'>1. 원자료 결측</div>
+                    <div class='logic-desc'>CSV에 값이 비어 있는 항목입니다. 0점 처리하지 않고 원자료 확인 또는 보완 대상으로 봅니다.</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with b:
+            st.markdown(
+                """
+                <div class='logic-box'>
+                    <div class='logic-title'>2. 보완값 사용</div>
+                    <div class='logic-desc'>평균·중앙값·학교급 기준값 등으로 대체한 값입니다. 분석은 가능하지만 실제 집행 전 근거 확인이 필요합니다.</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with c:
+            st.markdown(
+                """
+                <div class='logic-box'>
+                    <div class='logic-title'>3. 확인 필요 학교</div>
+                    <div class='logic-desc'>이상치·핵심 항목 부족 등 담당자 검토가 필요한 학교입니다. 자동 제외나 탈락을 뜻하지 않습니다.</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        left, right = st.columns(2)
+        with left:
+            st.markdown("#### 원자료 미입력 요약")
             if total_missing == 0:
                 notice("현재 선택 조건에서는 주요 항목 미입력이 없습니다.")
             else:
                 chart_df = missing_df[missing_df["미입력 학교 수"] > 0].copy()
-                bar_chart(chart_df, "항목", "미입력 학교 수", "미입력 항목별 학교 수", horizontal=True)
-        with c6:
-            st.markdown("**확인 필요 학교 현황**")
-            warning_by_office = warnings["region_office"].value_counts().rename_axis("교육청").reset_index(name="확인 필요 학교 수") if not warnings.empty and "region_office" in warnings.columns else pd.DataFrame(columns=["교육청", "확인 필요 학교 수"])
-            if warning_by_office.empty:
-                notice("현재 선택 조건에서는 주의 플래그 학교가 없습니다.")
-            elif len(warning_by_office) <= 1:
-                pretty_df(warning_by_office)
-            else:
-                bar_chart(warning_by_office, "교육청", "확인 필요 학교 수", "교육청별 확인 필요 학교 수")
+                bar_chart(chart_df, "점검 항목", "미입력 학교 수", "미입력 항목별 학교 수", horizontal=True)
+        with right:
+            st.markdown("#### 보완·확인 필요 요약")
+            summary = pd.DataFrame({
+                "구분": ["보완값 사용 학교", "확인 필요 학교", "최종 해석"],
+                "현재 상태": [f"{unique_filled_schools:,}개교", f"{warning_count:,}개교", status_label],
+                "담당자 확인 포인트": [
+                    "보완 항목의 원자료 확보 여부",
+                    "확인 사유와 권장 조치",
+                    "자동 추천 결과 확정 가능 여부",
+                ],
+            })
+            pretty_df(summary, height=230)
 
-        if filled_flag_cols:
-            notice(f"전처리 보완 플래그 기준 보완값 사용은 총 {total_filled:,}건입니다. 보완값은 원자료가 아니라 분석용 대체값으로 해석해야 합니다.", variant="warn")
-        else:
-            notice("현재 CSV에는 보완 여부를 구분하는 *_filled_flag 컬럼이 없습니다. 따라서 '원자료가 완전한 값'인지 '전처리로 채운 값'인지는 이 화면에서 자동 구분할 수 없습니다.", variant="warn")
+        notice("자료 점검 화면은 추천 결과의 신뢰도를 설명하기 위한 보조 화면입니다. 점검 대상이 있다고 해서 자동 탈락하거나 제외되는 것은 아닙니다.", variant="warn")
 
-    elif "원자료 미입력" in sub:
+    elif "원자료 결측" in sub:
         section_header(
-            "원자료 미입력 현황",
-            "주요 분석 항목의 빈칸 여부를 확인합니다.",
-            "미입력은 0점이 아니라 원자료 확인 또는 분석용 보완이 필요한 값입니다.",
+            "① 원자료 결측 점검",
+            "CSV에서 값이 비어 있는 항목을 확인합니다.",
+            "미입력은 0이 아니라 ‘확인 또는 보완이 필요한 값’으로 해석합니다.",
         )
         if total_missing == 0:
             notice("현재 분석용 데이터 기준으로 주요 항목 미입력은 없습니다.")
-            st.markdown("<div class='small-help'>단, 전처리 과정에서 이미 보완된 데이터라면 원자료 결측이 화면에 드러나지 않을 수 있습니다.</div>", unsafe_allow_html=True)
-        pretty_df(missing_df)
+            st.markdown("<div class='small-help'>단, 전처리 과정에서 이미 보완된 값은 원자료 결측으로 보이지 않을 수 있으므로 ‘보완값 사용’ 탭도 함께 확인하세요.</div>", unsafe_allow_html=True)
+        else:
+            notice("미입력 항목이 있는 경우 자동 추천 결과 확정 전에 원자료를 보완하는 것이 좋습니다.", variant="warn")
+        pretty_df(missing_df.sort_values("미입력 학교 수", ascending=False), height=420)
 
     elif "보완값 사용" in sub:
         section_header(
-            "보완값 사용 현황",
-            "전처리 과정에서 결측값을 평균·중앙값·학교급 기준값 등으로 채운 경우를 따로 확인합니다.",
-            "보완값은 분석을 계속하기 위한 임시값이며, 실제 집행 전에는 원자료 확인이 필요합니다.",
+            "② 보완값 사용 점검",
+            "전처리 과정에서 결측값을 평균·중앙값·학교급 기준값 등으로 채운 항목을 확인합니다.",
+            "보완값은 분석을 계속하기 위한 대체값이며, 원자료 자체를 의미하지 않습니다.",
         )
         if filled_flag_cols:
-            pretty_df(filled_df.sort_values("보완 적용 학교 수", ascending=False))
-            notice("보완값이 많을수록 자동 산출 결과를 해석할 때 신중해야 합니다. 특히 예산·시설 항목은 원자료 재확인을 권장합니다.", variant="warn")
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                metric_card("보완값 사용 학교", f"{unique_filled_schools:,}개교", "하나 이상 보완값 포함")
+            with c2:
+                metric_card("보완 항목-학교 건수", f"{total_filled_cells:,}건", "한 학교의 여러 항목 보완은 중복 집계")
+            with c3:
+                high_risk = int((filled_df["해석 주의도"] == "높음").sum()) if not filled_df.empty else 0
+                metric_card("주의도 높은 항목", f"{high_risk:,}개", "보완 비율 50% 이상")
+            pretty_df(filled_df.sort_values("보완 적용 학교 수", ascending=False), height=360)
+            high_items = filled_df[filled_df["해석 주의도"].eq("높음")]
+            if not high_items.empty:
+                items = " · ".join(high_items["보완 항목"].astype(str).tolist())
+                notice(f"{items} 항목은 보완 비율이 높습니다. 이 항목을 근거로 예산·시설 해석을 할 때에는 원자료 재확인이 필요합니다.", variant="warn")
+            else:
+                notice("보완값 사용 비율이 높은 항목은 크지 않습니다. 다만 실제 집행 전 핵심 학교의 원자료 확인은 권장됩니다.")
         else:
-            st.info("현재 CSV에는 보완 여부를 나타내는 플래그 컬럼이 없습니다.")
+            st.info("현재 데이터에는 보완 여부를 나타내는 *_filled_flag 또는 *_imputed_flag 컬럼이 없습니다.")
             st.markdown(
                 """
                 <div class='good-note'>
-                권장 데이터 구조: 결측값을 보완했다면 <b>budget_total_filled_flag</b>, <b>support_facility_score_filled_flag</b>처럼
-                항목별 보완 여부 컬럼을 함께 저장하면 원자료와 보완값을 구분할 수 있습니다.
+                더 완성도 높은 운영을 위해서는 보완한 항목마다 <b>budget_total_filled_flag</b>,
+                <b>settlement_total_filled_flag</b>, <b>support_facility_score_filled_flag</b>처럼
+                ‘이 값이 원자료인지 보완값인지’를 표시하는 컬럼을 함께 두는 것이 좋습니다.
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -2483,64 +2662,69 @@ def page_quality(base_df: pd.DataFrame) -> None:
 
     elif "확인 필요 학교" in sub:
         section_header(
-            "원자료 확인 필요 학교 목록",
-            "자동 산출 결과를 확정하기 전에 담당자가 한 번 더 확인해야 할 학교입니다.",
-            "주의 플래그는 결측, 이상치, 핵심 항목 부족 등 원자료 검토가 필요한 신호입니다.",
+            "③ 확인 필요 학교 목록",
+            "자동 추천 결과를 확정하기 전에 담당자가 한 번 더 확인해야 할 학교를 보여줍니다.",
+            "확인 필요 학교는 탈락 대상이 아니라 원자료 검토가 필요한 학교입니다.",
         )
         if warnings.empty:
-            notice("현재 선택 조건에서는 원자료 확인 필요 학교가 없습니다.")
+            notice("현재 선택 조건에서는 확인 필요 학교가 없습니다.")
         else:
-            show_cols = ["school_name", "school_level_group", "region_office", "first_choice_area_norm", "student_count", "확인 사유"]
+            show_cols = [
+                "school_name", "school_level_group", "region_office", "first_choice_area_norm",
+                "student_count", "final_allocation_score", "확인 사유", "권장 조치",
+            ]
             show = warnings[[c for c in show_cols if c in warnings.columns]].copy()
             rename = {
                 "school_name": "학교명",
                 "school_level_group": "학교급",
                 "region_office": "교육청",
-                "first_choice_area_norm": "1순위 영역",
+                "first_choice_area_norm": "지원영역",
                 "student_count": "학생수",
+                "final_allocation_score": "현재 최종점수",
             }
             show = show.rename(columns=rename)
-            pretty_df(show, height=460)
-            notice("이 목록은 학교를 제외하기 위한 명단이 아니라 원자료를 다시 확인해야 하는 검토 목록입니다.", variant="warn")
+            pretty_df(show, height=440)
+
+            if "school_display" in warnings.columns:
+                options = warnings["school_display"].astype(str).tolist()
+            else:
+                options = warnings["school_name"].astype(str).tolist() if "school_name" in warnings.columns else []
+            if options:
+                st.markdown("#### 선택 학교 상세 점검")
+                picked = st.selectbox("상세 확인할 학교", options, key="quality_warning_pick")
+                row = warnings[(warnings.get("school_display", warnings.get("school_name")).astype(str) == picked)].iloc[0]
+                summary_box([
+                    f"확인 사유: {row.get('확인 사유', '원자료 추가 확인 필요')}",
+                    f"권장 조치: {row.get('권장 조치', '담당자 검토 후 확정')}",
+                    f"학생수: {fmt_int(row.get('student_count', 0))}명 · 지원영역: {row.get('first_choice_area_norm', '')} · 현재 최종점수: {row.get('final_allocation_score', 0):.1f}점",
+                    "이 학교는 자동 제외 대상이 아니라, 점수 해석 전에 근거 자료를 한 번 더 확인해야 하는 대상입니다.",
+                ])
+            notice("확인 필요 목록은 심사·검토 순서의 안전장치입니다. 최종 선정 여부는 원자료 확인과 담당자 판단을 거쳐 결정합니다.", variant="warn")
 
     else:
         section_header(
-            "결과 읽는 법",
-            "자료 점검 화면은 자동 추천 결과를 신뢰성 있게 해석하기 위한 보조 화면입니다.",
-            "자동 결정이 아닌 검토 보조 · 최종 판단은 담당자 몫",
+            "자료 점검 결과 읽는 법",
+            "이 화면은 자동 추천 결과를 더 신뢰성 있게 설명하기 위한 보조 화면입니다.",
+            "자동 결정이 아닌 검토 보조 · 최종 판단은 담당자 몫입니다.",
         )
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            st.markdown(
-                """
-                <div class='logic-box'>
-                    <div class='logic-title'>1. 원자료 미입력</div>
-                    <div class='logic-desc'>CSV에 값이 비어 있는 상태입니다. 0으로 보지 않고 원자료 확인 또는 보완 대상으로 봅니다.</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with c2:
-            st.markdown(
-                """
-                <div class='logic-box'>
-                    <div class='logic-title'>2. 보완값 사용</div>
-                    <div class='logic-desc'>분석을 위해 평균·중앙값 등으로 임시 대체한 값입니다. 실제 집행 전에는 근거 확인이 필요합니다.</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with c3:
-            st.markdown(
-                """
-                <div class='logic-box'>
-                    <div class='logic-title'>3. 확인 필요 학교</div>
-                    <div class='logic-desc'>결측·이상치·핵심 항목 부족 등으로 담당자 검토가 필요한 학교입니다. 탈락 기준이 아닙니다.</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        notice("결과 해석 원칙: 추천 점수는 우선 검토 순서 제안이며, 원자료 점검과 현장 판단을 거쳐 최종 결정해야 합니다.")
+        st.markdown("#### 핵심 해석 원칙")
+        guide = pd.DataFrame({
+            "구분": ["원자료 결측", "보완값 사용", "확인 필요 학교", "최종 판단"],
+            "뜻": [
+                "CSV에 값이 비어 있는 상태",
+                "분석을 위해 평균·중앙값 등으로 임시 대체한 값",
+                "이상치·핵심 항목 부족 등으로 원자료 확인이 필요한 학교",
+                "자동 추천 점수와 담당자 검토를 함께 반영해 결정",
+            ],
+            "어떻게 해석하나": [
+                "0점이나 낮은 점수로 보지 않고, 원자료 확인 대상으로 봄",
+                "계산은 가능하지만 예산·시설 해석에는 주의가 필요함",
+                "탈락 대상이 아니라 검토 우선 대상임",
+                "자료 점검 후 필요하면 점수·보정 기준을 조정하고 재검토함",
+            ],
+        })
+        pretty_df(guide, height=270)
+        notice("보고서에는 ‘자료 점검 화면을 통해 결측·보완·확인 필요 학교를 분리하여 자동 추천 결과의 해석 가능성과 신뢰도를 높였다’고 설명하면 좋습니다.")
 
 # ------------------------------------------------------------
 # Main
