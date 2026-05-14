@@ -1,4 +1,3 @@
-import json
 import math
 from pathlib import Path
 from typing import Dict, List, Tuple
@@ -176,91 +175,85 @@ def inject_style() -> None:
         }
         @media (max-width: 860px) { .hero-stats { display: none; } }
 
-        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-           ULTRA 디자인 시스템 v3
-           Primary   #0064C8   Secondary  #00A0E9
-           Success   #10B981   Warning    #F59E0B
-           Danger    #EF4444   Background #F0F4FA
-        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-
-        /* ── GNB 탭 바 ── */
+        /* ━━━ GNB 탭 바 — 흰 배경, 진한 글씨, 클릭 명확 ━━━ */
         .top-nav-host {
             background: #ffffff;
             border: 1.5px solid #c8d8ee;
-            border-radius: 16px;
-            padding: 0.52rem 0.6rem;
-            margin: 0 0 1.25rem 0;
-            box-shadow: 0 4px 20px rgba(0,80,180,0.09);
+            border-radius: 14px;
+            padding: 0.5rem 0.55rem;
+            margin: 0 0 1.3rem 0;
+            box-shadow: 0 4px 18px rgba(0,80,180,0.10);
         }
 
-        /* ── 버튼 공통 폰트 (Streamlit 내부 p/span 포함) ── */
+        /* 공통 폰트 — 모든 자식 포함 */
         div[data-testid="stButton"] > button,
         div[data-testid="stButton"] > button > div,
         div[data-testid="stButton"] > button p,
-        div[data-testid="stButton"] > button span,
-        div[data-testid="stButton"] button * {
+        div[data-testid="stButton"] > button span {
             font-family: 'Pretendard', 'Noto Sans KR', sans-serif !important;
-            font-size: 0.97rem !important;
+            font-size: 1.02rem !important;
             font-weight: 700 !important;
             letter-spacing: -0.015em !important;
             line-height: 1.3 !important;
-            color: inherit !important;
         }
-        /* 비활성 기본 */
+        /* 비활성 기본 — 밝은 회색 배경 + 진한 글씨 */
         div[data-testid="stButton"] > button {
             border-radius: 10px !important;
-            min-height: 2.95rem !important;
+            min-height: 3.0rem !important;
             border: 1.5px solid #dde8f5 !important;
             background: #f2f6fc !important;
-            color: #1e3a5f !important;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
-            transition: background .13s, color .13s, border-color .13s,
-                        box-shadow .13s, transform .09s !important;
+            color: #2a3a52 !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+            transition: background 0.14s, color 0.14s, border-color 0.14s, box-shadow 0.14s, transform 0.09s !important;
             padding: 0.5rem 0.7rem !important;
             cursor: pointer !important;
             width: 100%;
         }
-        /* 활성 탭 */
+        /* 활성 탭 — 파란 배경 + 흰 글씨 + 입체 그림자 */
         div[data-testid="stButton"] > button[kind="primary"],
         div[data-testid="stButton"] > button[kind="primary"] p,
         div[data-testid="stButton"] > button[kind="primary"] span {
             background: #0064c8 !important;
             color: #ffffff !important;
             border-color: #0053a8 !important;
-            box-shadow: 0 4px 14px rgba(0,100,200,0.32),
-                        inset 0 -2px 0 rgba(0,40,120,0.16) !important;
+            box-shadow:
+                0 4px 14px rgba(0,100,200,0.35),
+                inset 0 -2px 0 rgba(0,40,120,0.18) !important;
             font-weight: 800 !important;
         }
+        /* 비활성 hover */
         div[data-testid="stButton"] > button[kind="secondary"]:hover {
             background: #dceeff !important;
             color: #0053a8 !important;
             border-color: #90bce8 !important;
+            box-shadow: 0 2px 8px rgba(0,100,200,0.12) !important;
         }
+        /* 활성 hover */
         div[data-testid="stButton"] > button[kind="primary"]:hover {
             background: #0053a8 !important;
         }
+        /* 클릭 */
         div[data-testid="stButton"] > button:active {
-            transform: scale(0.962) !important;
+            transform: scale(0.96) !important;
             box-shadow: inset 0 2px 6px rgba(0,0,0,0.14) !important;
         }
 
-        /* ── 서브탭 컨테이너 ── */
+        /* ━━━ 서브탭 — 입체 회색 박스, 진한 글씨 ━━━ */
         .sub-tab-host {
             background: #f0f5fc;
             border: 1.5px solid #c4d4e8;
             border-radius: 12px;
             padding: 0.42rem 0.48rem;
             margin-bottom: 1.1rem;
-            box-shadow: 0 2px 8px rgba(0,60,150,0.06),
-                        inset 0 1px 0 #ffffff;
+            box-shadow: 0 2px 8px rgba(0,60,150,0.07), inset 0 1px 0 #ffffff;
         }
         .sub-tab-host div[data-testid="stButton"] > button {
             border-radius: 8px !important;
-            min-height: 2.55rem !important;
+            min-height: 2.6rem !important;
             background: #ffffff !important;
             border: 1.5px solid #d8e6f4 !important;
             color: #1e3a5f !important;
-            font-size: 0.93rem !important;
+            font-size: 0.96rem !important;
             font-weight: 700 !important;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
         }
@@ -270,7 +263,7 @@ def inject_style() -> None:
             background: #0064c8 !important;
             color: #ffffff !important;
             border-color: #0053a8 !important;
-            box-shadow: 0 3px 10px rgba(0,100,200,0.28) !important;
+            box-shadow: 0 3px 10px rgba(0,100,200,0.30) !important;
             font-weight: 800 !important;
         }
         .sub-tab-host div[data-testid="stButton"] > button[kind="secondary"]:hover {
@@ -279,30 +272,30 @@ def inject_style() -> None:
             border-color: #90bce8 !important;
         }
 
-        /* ── 필터 패널 ── */
+        /* ━━━ 필터 패널 ━━━ */
         .filter-panel {
             background: #ffffff;
             border: 1px solid #dde5f0;
             border-top: 3px solid #0064c8;
-            border-radius: 12px;
-            padding: 1.05rem 1.35rem 0.7rem 1.35rem;
+            border-radius: 10px;
+            padding: 1rem 1.3rem 0.65rem 1.3rem;
             margin-bottom: 0.9rem;
-            box-shadow: 0 2px 12px rgba(0,100,200,0.05);
+            box-shadow: 0 2px 10px rgba(0,100,200,0.05);
         }
         .engine-panel {
-            background: linear-gradient(135deg, #edf4ff 0%, #e6f4ff 100%);
-            border: 1px solid #bdd8f0;
-            border-left: 4px solid #0064c8;
+            background: linear-gradient(135deg, #edf4ff 0%, #e8f6ff 100%);
+            border: 1px solid #c0d8f0;
+            border-left: 4px solid #00a0e9;
             border-radius: 10px;
-            padding: 0.78rem 1.1rem;
-            margin: 0 0 1.05rem 0;
+            padding: 0.8rem 1.1rem;
+            margin: 0 0 1rem 0;
         }
         .engine-title {
-            font-size: 0.68rem;
+            font-size: 0.7rem;
             font-weight: 800;
             color: #0064c8;
-            margin-bottom: 0.2rem;
-            letter-spacing: 0.07em;
+            margin-bottom: 0.22rem;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
         }
         .engine-desc {
@@ -311,19 +304,19 @@ def inject_style() -> None:
             line-height: 1.62;
         }
 
-        /* ── 섹션 헤더 카드 ── */
+        /* ━━━ 섹션 헤더 카드 ━━━ */
         .section-card {
             background: #ffffff;
             border: 1px solid #dde5f0;
             border-top: 4px solid #0064c8;
-            border-radius: 12px;
-            padding: 1.2rem 1.5rem 1rem 1.5rem;
-            margin-bottom: 1.25rem;
-            box-shadow: 0 2px 12px rgba(0,100,200,0.05);
+            border-radius: 10px;
+            padding: 1.2rem 1.5rem 1.05rem 1.5rem;
+            margin-bottom: 1.3rem;
+            box-shadow: 0 2px 10px rgba(0,100,200,0.05);
         }
         .mini-chip {
             display: inline-block;
-            padding: 0.22rem 0.68rem;
+            padding: 0.22rem 0.65rem;
             font-size: 0.7rem;
             font-weight: 700;
             color: #ffffff;
@@ -333,30 +326,30 @@ def inject_style() -> None:
             letter-spacing: 0.04em;
         }
         .section-title {
-            font-size: 1.2rem;
+            font-size: 1.22rem;
             font-weight: 800;
             color: #0d2d52;
-            margin-bottom: 0.28rem;
-            line-height: 1.32;
+            margin-bottom: 0.3rem;
+            line-height: 1.3;
             letter-spacing: -0.03em;
             font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
         }
         .section-desc {
             font-size: 0.875rem;
             color: #5a6a7e;
-            line-height: 1.72;
+            line-height: 1.75;
             letter-spacing: -0.01em;
         }
 
-        /* ── 메트릭 카드 ── */
+        /* ━━━ 메트릭 카드 (에듀넷 수치 강조 스타일) ━━━ */
         .metric-card {
             background: #ffffff;
             border: 1px solid #dde5f0;
-            border-radius: 14px;
-            padding: 1.2rem 1.25rem 1.05rem 1.25rem;
-            min-height: 116px;
+            border-radius: 12px;
+            padding: 1.25rem 1.3rem 1.1rem 1.3rem;
+            min-height: 118px;
             box-shadow: 0 2px 10px rgba(0,100,200,0.05);
-            transition: box-shadow .2s, transform .15s;
+            transition: box-shadow 0.2s, transform 0.15s;
             position: relative;
             overflow: hidden;
         }
@@ -366,22 +359,22 @@ def inject_style() -> None:
             bottom: 0; left: 0; right: 0;
             height: 3px;
             background: linear-gradient(90deg, #0064c8, #00a0e9);
-            border-radius: 0 0 14px 14px;
+            border-radius: 0 0 12px 12px;
         }
         .metric-card:hover {
-            box-shadow: 0 7px 24px rgba(0,100,200,0.13);
+            box-shadow: 0 6px 22px rgba(0,100,200,0.12);
             transform: translateY(-2px);
         }
         .metric-label {
-            font-size: 0.71rem;
+            font-size: 0.72rem;
             font-weight: 700;
             color: #8696a8;
-            margin-bottom: 0.5rem;
-            letter-spacing: 0.05em;
+            margin-bottom: 0.52rem;
+            letter-spacing: 0.04em;
             text-transform: uppercase;
         }
         .metric-value {
-            font-size: 1.78rem;
+            font-size: 1.82rem;
             font-weight: 900;
             color: #0064c8;
             line-height: 1.06;
@@ -389,42 +382,40 @@ def inject_style() -> None:
             font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
         }
         .metric-sub {
-            font-size: 0.74rem;
+            font-size: 0.75rem;
             color: #8696a8;
-            margin-top: 0.46rem;
+            margin-top: 0.48rem;
             line-height: 1.5;
         }
 
-        /* ── 학교 카드 ── */
+        /* ━━━ 학교 카드 ━━━ */
         .school-card {
             background: #ffffff;
             border: 1px solid #dde5f0;
-            border-radius: 14px;
-            padding: 1.2rem 1.15rem 1.1rem;
-            min-height: 210px;
+            border-radius: 12px;
+            padding: 1.25rem 1.2rem 1.15rem;
+            min-height: 208px;
             box-shadow: 0 2px 8px rgba(0,100,200,0.05);
-            transition: box-shadow .2s, transform .15s, border-color .15s;
+            transition: box-shadow 0.22s, transform 0.15s;
         }
         .school-card:hover {
-            box-shadow: 0 10px 32px rgba(0,100,200,0.14);
+            box-shadow: 0 10px 30px rgba(0,100,200,0.13);
             transform: translateY(-3px);
             border-color: #aac8e8;
         }
         .school-rank {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 28px; height: 28px;
-            font-size: 0.78rem;
+            display: inline-block;
+            font-size: 0.68rem;
             font-weight: 800;
             color: #ffffff;
             background: linear-gradient(135deg, #0064c8, #00a0e9);
-            border-radius: 8px;
+            border-radius: 4px;
+            padding: 0.2rem 0.55rem;
             margin-bottom: 0.55rem;
-            letter-spacing: 0;
+            letter-spacing: 0.06em;
         }
         .school-name {
-            font-size: 1.02rem;
+            font-size: 1.05rem;
             font-weight: 800;
             color: #0d2d52;
             line-height: 1.35;
@@ -433,60 +424,72 @@ def inject_style() -> None:
             font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
         }
         .school-meta {
-            font-size: 0.81rem;
+            font-size: 0.82rem;
             color: #5a6a7e;
-            margin-bottom: 0.58rem;
+            margin-bottom: 0.6rem;
             line-height: 1.72;
         }
         .school-reason {
-            font-size: 0.81rem;
+            font-size: 0.82rem;
             color: #2c4060;
             line-height: 1.72;
-            padding-top: 0.56rem;
+            padding-top: 0.58rem;
             border-top: 1px solid #edf2f9;
         }
+        .urgent-badge {
+            display: inline-flex;
+            align-items: center;
+            background: #fff3cd;
+            color: #856404;
+            border-radius: 4px;
+            padding: 0.12rem 0.42rem;
+            font-size: 0.68rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
 
-        /* ── 요약 박스 ── */
+
+        /* ━━━ 요약 박스 ━━━ */
         .summary-box {
             background: #ffffff;
             border: 1px solid #dde5f0;
-            border-radius: 14px;
-            padding: 1.2rem 1.3rem 1.05rem;
-            min-height: 210px;
+            border-radius: 12px;
+            padding: 1.25rem 1.3rem 1.1rem;
+            min-height: 208px;
             box-shadow: 0 2px 8px rgba(0,100,200,0.05);
         }
         .summary-title {
-            font-size: 0.9rem;
+            font-size: 0.92rem;
             font-weight: 800;
             color: #0064c8;
-            margin-bottom: 0.72rem;
-            padding-bottom: 0.58rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.6rem;
             border-bottom: 1.5px solid #ddeeff;
             display: flex;
             align-items: center;
             gap: 0.4rem;
         }
-        .summary-title::before { content: "📋"; font-size: 0.85rem; }
+        .summary-title::before { content: "📋"; font-size: 0.88rem; }
         .summary-list {
             font-size: 0.86rem;
             color: #2c4060;
-            line-height: 1.95;
+            line-height: 2.0;
         }
         .summary-list ul { margin: 0; padding: 0; list-style: none; }
         .summary-list li {
-            padding: 0.16rem 0;
+            padding: 0.18rem 0;
             border-bottom: 1px solid #f0f5fb;
         }
         .summary-list li:last-child { border-bottom: none; }
 
-        /* ── 알림 노트 ── */
+        /* ━━━ 알림 노트 ━━━ */
         .good-note {
             background: #edf6ff;
             color: #0d4c8a;
             border: 1px solid #b8d8f8;
             border-left: 4px solid #0064c8;
-            border-radius: 9px;
-            padding: 0.82rem 1.05rem;
+            border-radius: 8px;
+            padding: 0.85rem 1.05rem;
             font-size: 0.86rem;
             line-height: 1.7;
             margin-top: 0.65rem;
@@ -496,14 +499,14 @@ def inject_style() -> None:
             color: #7c4a00;
             border: 1px solid #ffd89c;
             border-left: 4px solid #ff6b00;
-            border-radius: 9px;
-            padding: 0.82rem 1.05rem;
+            border-radius: 8px;
+            padding: 0.85rem 1.05rem;
             font-size: 0.86rem;
             line-height: 1.7;
             margin-top: 0.65rem;
         }
 
-        /* ── 로직 박스 ── */
+        /* ━━━ 로직 박스 ━━━ */
         .logic-box {
             background: #ffffff;
             border: 1px solid #dde5f0;
@@ -513,10 +516,10 @@ def inject_style() -> None:
             box-shadow: 0 2px 8px rgba(0,100,200,0.04);
         }
         .logic-title {
-            font-size: 0.9rem;
+            font-size: 0.92rem;
             font-weight: 700;
             color: #0064c8;
-            margin-bottom: 0.36rem;
+            margin-bottom: 0.38rem;
         }
         .logic-desc {
             font-size: 0.86rem;
@@ -524,33 +527,33 @@ def inject_style() -> None:
             line-height: 1.7;
         }
 
-        /* ── 보조 텍스트 ── */
+        /* ━━━ 보조 텍스트 ━━━ */
         .footer-note, .small-help {
-            font-size: 0.79rem;
+            font-size: 0.8rem;
             color: #8696a8;
-            line-height: 1.62;
+            line-height: 1.6;
         }
 
-        /* ── Select / Slider ── */
+        /* ━━━ select / slider ━━━ */
         div[data-baseweb="select"] > div {
             border-color: #dde5f0 !important;
             border-radius: 8px !important;
             box-shadow: none !important;
             font-size: 0.9rem !important;
-            transition: border-color .15s !important;
         }
         div[data-baseweb="select"] > div:focus-within {
             border-color: #0064c8 !important;
             box-shadow: 0 0 0 3px rgba(0,100,200,0.1) !important;
         }
 
-        /* ── 데이터프레임 ── */
+        /* ━━━ 데이터프레임 ━━━ */
         .stDataFrame, div[data-testid="stTable"] {
             background: #ffffff;
             border-radius: 10px;
             overflow: hidden;
             border: 1px solid #dde5f0;
         }
+        /* 테이블 헤더 */
         .stDataFrame thead th {
             background: #f0f6ff !important;
             color: #0064c8 !important;
@@ -558,39 +561,39 @@ def inject_style() -> None:
             font-size: 0.82rem !important;
         }
 
-        /* ── 학교 아이덴티티 카드 ── */
+        /* ━━━ 학교 아이덴티티 카드 ━━━ */
         .school-identity-card {
-            background: linear-gradient(135deg, #004ea2 0%, #0064c8 55%, #0096d6 100%);
+            background: linear-gradient(135deg, #004ea2 0%, #0064c8 60%, #0096d6 100%);
             border: none;
-            border-radius: 14px;
+            border-radius: 12px;
             padding: 1.15rem 1.3rem;
             min-height: 112px;
-            box-shadow: 0 6px 22px rgba(0,100,200,0.22);
+            box-shadow: 0 6px 20px rgba(0,100,200,0.22);
         }
         .school-identity-label {
-            font-size: 0.68rem;
+            font-size: 0.7rem;
             font-weight: 700;
-            color: rgba(255,255,255,0.62);
-            margin-bottom: 0.28rem;
-            letter-spacing: 0.07em;
+            color: rgba(255,255,255,0.65);
+            margin-bottom: 0.3rem;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
         }
         .school-identity-name {
-            font-size: 1.42rem;
+            font-size: 1.45rem;
             font-weight: 900;
             color: #ffffff;
             line-height: 1.2;
             letter-spacing: -0.035em;
-            margin-bottom: 0.2rem;
+            margin-bottom: 0.22rem;
             font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
         }
         .school-identity-meta {
             font-size: 0.82rem;
-            color: rgba(255,255,255,0.76);
+            color: rgba(255,255,255,0.78);
             line-height: 1.5;
         }
 
-        /* ── Streamlit 기본 요소 ── */
+        /* ━━━ Streamlit 라벨 ━━━ */
         .stSelectbox label, .stSlider label, .stNumberInput label,
         div[data-testid="stMarkdownContainer"] p {
             font-size: 0.82rem !important;
@@ -600,20 +603,50 @@ def inject_style() -> None:
             letter-spacing: -0.01em !important;
         }
         div[data-testid="stAlert"] {
-            border-radius: 9px !important;
+            border-radius: 8px !important;
             font-size: 0.875rem !important;
         }
 
-        /* ── 스크롤바 ── */
+        /* ━━━ 스크롤바 ━━━ */
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: #edf2f9; border-radius: 3px; }
         ::-webkit-scrollbar-thumb { background: #9cc0e8; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #5599d0; }
 
-        /* ── 컬럼 간격 ── */
+        /* ━━━ Streamlit 컬럼 간격 보정 ━━━ */
         div[data-testid="stHorizontalBlock"] {
-            gap: 0.95rem !important;
-            row-gap: 0.95rem !important;
+            gap: 1rem !important;
+            row-gap: 1rem !important;
+        }
+        div[data-testid="column"] > div > div > div {
+            gap: 0.9rem;
+        }
+        /* 각 페이지 구성 요소 사이 위아래 여백 */
+        div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] {
+            gap: 0.75rem;
+        }
+
+        /* ━━━ Streamlit 버튼 내부 p/span 태그 글씨 크기 강제 적용 ━━━
+           Streamlit이 button 안에 <p> 태그를 렌더링하여 font-size를 덮어씀.
+           이를 방지하기 위해 모든 자식 요소에 명시적으로 적용.         */
+        div[data-testid="stButton"] button *,
+        div[data-testid="stButton"] button p,
+        div[data-testid="stButton"] button span,
+        div[data-testid="stButton"] button div {
+            font-size: 0.97rem !important;
+            font-weight: 700 !important;
+            font-family: 'Pretendard', 'Noto Sans KR', sans-serif !important;
+            letter-spacing: -0.02em !important;
+            line-height: 1.3 !important;
+            color: inherit !important;
+        }
+        /* 서브탭 영역 — 배경박스 강조 */
+        .sub-tab-host {
+            background: #f4f8fd;
+            border: 1px solid #d8e8f5;
+            border-radius: 12px;
+            padding: 0.4rem 0.5rem;
+            margin-bottom: 1rem;
         }
         </style>
         """,
@@ -649,115 +682,6 @@ LEVEL_POLICY_MAP = {
 }
 
 LEVEL_BUDGET_SHARE = {"초등": 0.34, "중등": 0.31, "고등": 0.35}
-
-
-# ------------------------------------------------------------
-# Editable policy setting model
-# ------------------------------------------------------------
-BASE_POLICY_DEFAULTS = {
-    "budget_eok": 30,
-    "max_support": 2,
-    "request_bonus": 20,
-    "urgent_bonus": 15,
-    "size_weight": 1.0,
-    "finance_bonus": 3.0,
-    "region_bonus": 3.0,
-    "facility_bonus_top": 4.0,
-}
-POLICY_SETTING_KEYS = list(BASE_POLICY_DEFAULTS.keys())
-
-
-def cost_key(level: str, area: str) -> str:
-    return f"cost__{level}__{area}"
-
-
-def get_standard_cost(area: str, level: str) -> float:
-    """Return the editable standard cost stored in session_state."""
-    if area not in STANDARD_COSTS:
-        area = "학업지원"
-    if level not in LEVELS:
-        level = "중등"
-    default = float(STANDARD_COSTS.get(area, STANDARD_COSTS["학업지원"]).get(level, 14_000_000))
-    try:
-        return float(st.session_state.get(cost_key(level, area), default))
-    except Exception:
-        return default
-
-
-def get_policy_config() -> Dict[str, object]:
-    config = {k: st.session_state.get(k, BASE_POLICY_DEFAULTS.get(k)) for k in POLICY_SETTING_KEYS}
-    config["scenario"] = st.session_state.get("scenario", "기본형")
-    config["standard_costs"] = {
-        level: {area: int(get_standard_cost(area, level)) for area in AREAS}
-        for level in LEVELS
-    }
-    return config
-
-
-def apply_policy_config(config: Dict[str, object]) -> None:
-    if not isinstance(config, dict):
-        return
-    # scenario는 상단 selectbox 위젯과 연결되어 있어 실행 중 강제 변경하지 않습니다.
-    for k in POLICY_SETTING_KEYS:
-        if k in config:
-            st.session_state[k] = config[k]
-
-    costs = config.get("standard_costs", {})
-    if isinstance(costs, dict):
-        for level in LEVELS:
-            level_costs = costs.get(level, {})
-            if isinstance(level_costs, dict):
-                for area in AREAS:
-                    if area in level_costs:
-                        try:
-                            st.session_state[cost_key(level, area)] = int(float(level_costs[area]))
-                        except Exception:
-                            pass
-
-
-def reset_policy_config() -> None:
-    for k, v in BASE_POLICY_DEFAULTS.items():
-        st.session_state[k] = v
-    for area, mapping in STANDARD_COSTS.items():
-        for level, value in mapping.items():
-            st.session_state[cost_key(level, area)] = int(value)
-
-
-def keep_policy_state_alive() -> None:
-    """
-    Streamlit은 특정 페이지에서 렌더링되지 않은 위젯 key를 정리할 수 있습니다.
-    지원 기준 설정 화면의 슬라이더/입력값은 결과 화면에서도 계속 계산에 쓰여야 하므로,
-    매 실행마다 같은 값을 다시 session_state에 넣어 페이지 이동 후 초기화를 막습니다.
-    """
-    keys = POLICY_SETTING_KEYS + [cost_key(level, area) for level in LEVELS for area in AREAS]
-    for k in keys:
-        if k in st.session_state:
-            st.session_state[k] = st.session_state[k]
-
-
-def export_policy_config_json() -> str:
-    payload = {
-        "service": "ULTRA 학교지원 우선순위 추천 서비스",
-        "version": "policy-config-v1",
-        "description": "지원 기준 설정 화면에서 저장한 배분 기준·보정계수·영역별 표준단가입니다.",
-        "config": get_policy_config(),
-    }
-    return json.dumps(payload, ensure_ascii=False, indent=2)
-
-
-def run_engine_with_config(df: pd.DataFrame, config: Dict[str, object]) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, float]:
-    """Run scoring/allocation with a temporary config, then restore current session settings."""
-    keys = POLICY_SETTING_KEYS + [cost_key(level, area) for level in LEVELS for area in AREAS]
-    old = {k: st.session_state.get(k) for k in keys}
-    try:
-        apply_policy_config(config)
-        return run_allocation_engine(df)
-    finally:
-        for k, v in old.items():
-            if v is None and k in st.session_state:
-                del st.session_state[k]
-            elif v is not None:
-                st.session_state[k] = v
 
 
 def level_caption(level: str) -> str:
@@ -894,7 +818,7 @@ def calc_operation_coeff(area: str) -> float:
 def recommended_budget(row: pd.Series) -> float:
     level = row.get("school_level_group", "중등")
     area = row.get("first_choice_area_norm", "학업지원")
-    base = get_standard_cost(area, level)
+    base = STANDARD_COSTS.get(area, STANDARD_COSTS["학업지원"]).get(level, 14_000_000)
     return base * calc_size_coeff(float(row.get("student_count", 0) or 0)) * calc_vulnerability_coeff(row) * calc_operation_coeff(area)
 
 
@@ -1038,13 +962,11 @@ def prepare_df(df: pd.DataFrame) -> pd.DataFrame:
     out["first_choice_area_norm"] = out["first_choice_area"].replace(area_alias)
     out.loc[~out["first_choice_area_norm"].isin(AREAS), "first_choice_area_norm"] = "학업지원"
 
-    # student_size_score 안전 보정
-    # - Streamlit Cloud/Pandas 3.x 환경에서 부분 Series를 loc로 대입하면
-    #   일부 CSV 구조에서 TypeError가 발생할 수 있어, 전체 길이 Series로 먼저 계산한 뒤 where로 병합합니다.
-    auto_size_score = score_from_quantile(out["student_count"])
-    out["student_size_score"] = pd.to_numeric(out["student_size_score"], errors="coerce")
-    out["student_size_score"] = out["student_size_score"].where(out["student_size_score"].notna(), auto_size_score)
-    out["student_size_score"] = out["student_size_score"].fillna(0).astype(float).round(1)
+    if out["student_size_score"].isna().all():
+        out["student_size_score"] = score_from_quantile(out["student_count"])
+    else:
+        missing_idx = out["student_size_score"].isna()
+        out.loc[missing_idx, "student_size_score"] = score_from_quantile(out.loc[missing_idx, "student_count"])
 
     if "우선 검토 점수" in out.columns:
         out["우선 검토 점수"] = pd.to_numeric(out["우선 검토 점수"], errors="coerce")
@@ -1067,20 +989,23 @@ def prepare_df(df: pd.DataFrame) -> pd.DataFrame:
 def init_state() -> None:
     defaults = {
         "page": "결과 한눈에 보기",
-        "sub_result": "📈 종합 요약",
-        "sub_settings": "📋 기본 설정",
-        "sub_eval": "📝 계획서 요약",
-        "sub_report": "🏅 점수 풀이",
-        "sub_quality": "🧾 점검 요약",
+        "sub_result": "개요",
+        "sub_settings": "기본 기준",
+        "sub_eval": "계획서 요약",
+        "sub_report": "점수 설명",
+        "sub_quality": "신뢰도 요약",
         "office": "전체",
         "school_level_pick": "초등",
         "scenario": "기본형",
-        **BASE_POLICY_DEFAULTS,
+        "budget_eok": 30,
+        "max_support": 2,
+        "request_bonus": 20,
+        "urgent_bonus": 15,
+        "size_weight": 1.0,
+        "finance_bonus": 3.0,
+        "region_bonus": 3.0,
+        "facility_bonus_top": 4.0,
     }
-    for area, mapping in STANDARD_COSTS.items():
-        for level, value in mapping.items():
-            defaults[cost_key(level, area)] = int(value)
-
     for k, v in defaults.items():
         if k not in st.session_state:
             st.session_state[k] = v
@@ -1226,13 +1151,11 @@ def nav_buttons(options: List[str], state_key: str, columns: int | None = None) 
     cols = st.columns(columns or len(options))
     for i, opt in enumerate(options):
         is_active = current == opt
-        # Streamlit 버튼 클릭 자체가 이미 rerun을 발생시키므로, 여기서 st.rerun()을 다시 호출하지 않습니다.
-        # 추가 rerun을 걸면 설정 페이지의 위젯 값이 렌더링되지 않은 상태로 정리되어
-        # 결과 화면 이동 시 조정값이 기본값으로 돌아갈 수 있습니다.
+        # 활성 탭은 라벨 그대로 (버튼 배경색으로 충분히 구분됨)
         if cols[i].button(opt, key=f"{state_key}_{i}", use_container_width=True, type="primary" if is_active else "secondary"):
             st.session_state[state_key] = opt
-            current = opt
-    return current
+            st.rerun()
+    return st.session_state.get(state_key, options[0])
 
 
 def section_header(chip: str, title: str, desc: str) -> None:
@@ -1279,54 +1202,60 @@ def school_identity_card(name: str, meta: str) -> None:
 
 
 def school_card(rank: int, row: pd.Series) -> None:
-    reason = row.get("reason_v2", "")
-    reason = reason if str(reason).strip() and reason != "nan" else "학생규모·신청 여부·긴급성·재정·지역·시설 보정을 종합해 산출한 결과입니다."
-    if len(reason) > 58:
-        reason = reason[:58].rstrip() + "…"
-    rank_styles = {
-        1: ("linear-gradient(135deg,#0053a8,#0064c8)", "🥇"),
-        2: ("linear-gradient(135deg,#0080c8,#00a0e9)", "🥈"),
-        3: ("linear-gradient(135deg,#0096d6,#48cae4)", "🥉"),
-    }
-    rank_bg, rank_emoji = rank_styles.get(rank, ("#6c757d", f"#{rank}"))
-    score_val = row.get("final_allocation_score", row.get("우선 검토 점수", 0))
+    """결과 한눈에 보기의 TOP 학교 카드.
+
+    HTML 문자열을 직접 렌더링하지 않고 Streamlit 기본 컴포넌트만 사용합니다.
+    일부 Streamlit Cloud 환경에서 HTML 조각이 코드처럼 화면에 노출되는 문제를 방지합니다.
+    """
+    def clean(value, default: str = "") -> str:
+        try:
+            if pd.isna(value):
+                return default
+        except Exception:
+            pass
+        text = str(value).strip()
+        if text.lower() in ["nan", "none", "null", ""]:
+            return default
+        return text
+
+    name = clean(row.get("school_display", row.get("school_name", "미상학교")), "미상학교")
+    level = clean(row.get("school_level_group", ""), "-")
+    office = clean(row.get("region_office", ""), "-")
+    area = clean(row.get("first_choice_area_norm", ""), "-")
+    reason = clean(
+        row.get("reason_v2", ""),
+        "학생규모, 신청 여부, 긴급성, 재정·지역·시설 보정을 종합 반영한 결과입니다.",
+    )
+    if len(reason) > 70:
+        reason = reason[:70].rstrip() + "…"
+
     try:
-        score_val = float(score_val or 0)
+        score_val = float(row.get("final_allocation_score", row.get("우선 검토 점수", 0)) or 0)
     except Exception:
         score_val = 0.0
-    urgent = int(row.get("urgent_flag", 0) or 0)
-    urgent_badge = "<span style='font-size:0.7rem; background:#fff3cd; color:#856404; border-radius:4px; padding:0.1rem 0.38rem; font-weight:700; margin-left:0.35rem;'>⚡긴급</span>" if urgent else ""
-    st.markdown(
-        f"""
-        <div class='school-card'>
-            <div style='display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;'>
-                <span style='display:inline-flex; align-items:center; justify-content:center;
-                    width:30px; height:30px; border-radius:9px;
-                    background:{rank_bg}; color:#fff;
-                    font-size:0.8rem; font-weight:900; flex-shrink:0;
-                    box-shadow:0 2px 6px rgba(0,80,180,0.22);'>{rank}</span>
-                <span class='school-name' style='margin:0;'>{row.get('school_display', row.get('school_name', '미상'))}</span>
-                {urgent_badge}
-            </div>
-            <div class='school-meta'>
-                {row.get('school_level_group', '')} &nbsp;·&nbsp; {row.get('region_office', '')} &nbsp;·&nbsp; {row.get('first_choice_area_norm', '')}
-            </div>
-            <div style='display:flex; gap:0.6rem; margin-bottom:0.55rem;'>
-                <span style='background:#edf4ff; color:#0064c8; border-radius:6px;
-                    padding:0.22rem 0.58rem; font-size:0.8rem; font-weight:700;'>
-                    점수&nbsp;{score_val:.1f}
-                </span>
-                <span style='background:#e8f5ee; color:#166534; border-radius:6px;
-                    padding:0.22rem 0.58rem; font-size:0.8rem; font-weight:700;'>
-                    권장예산&nbsp;{fmt_money(row.get('recommended_budget', 0))}
-                </span>
-            </div>
-            <div class='school-reason'>{reason}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
 
+    budget_text = fmt_money(row.get("recommended_budget", 0))
+    urgent = int(row.get("urgent_flag", 0) or 0) == 1
+
+    # st.container(border=True)는 Streamlit 기본 UI라 HTML 코드가 화면에 노출되지 않습니다.
+    with st.container(border=True):
+        top_left, top_right = st.columns([0.18, 0.82])
+        with top_left:
+            st.markdown(f"### {rank}")
+        with top_right:
+            title = f"**{name}**"
+            if urgent:
+                title += "  \n⚡ 긴급"
+            st.markdown(title)
+            st.caption(f"{level} · {office} · {area}")
+
+        score_col, budget_col = st.columns(2)
+        with score_col:
+            st.metric("점수", f"{score_val:.1f}")
+        with budget_col:
+            st.metric("권장예산", budget_text)
+
+        st.caption(reason)
 
 def summary_box(lines: List[str]) -> None:
     items = "".join([
@@ -1362,139 +1291,6 @@ def pretty_df(df: pd.DataFrame, height: int | None = None) -> None:
             else:
                 show[c] = show[c].apply(lambda x: f"{x:,.1f}" if pd.notna(x) and not float(x).is_integer() else (f"{int(x):,}" if pd.notna(x) else ""))
     st.dataframe(show, use_container_width=True, height=height or min(max(220, 46 + len(show) * 36), 560), hide_index=True)
-
-def _score_reason_parts(row: pd.Series) -> Dict[str, List[str]]:
-    """최종점수 설명을 표용 요약과 상세 설명으로 나누어 구성합니다."""
-    tags: List[str] = []
-    bullets: List[str] = []
-
-    try:
-        students = float(row.get("student_count", row.get("학생수", np.nan)))
-    except Exception:
-        students = np.nan
-    if pd.notna(students):
-        student_label = fmt_int(students)
-        if students >= 1000:
-            tags.append("대규모")
-            bullets.append(f"학생 수 {student_label}명으로 같은 학교급 내 대규모 학교에 해당하여 규모 요인이 반영됨")
-        elif students >= 700:
-            tags.append("중대규모")
-            bullets.append(f"학생 수 {student_label}명으로 중대규모 학교에 해당하여 학생 규모 요인이 반영됨")
-        elif students <= 300:
-            tags.append("소규모")
-            bullets.append(f"학생 수 {student_label}명으로 소규모 학교 특성이 반영됨")
-        else:
-            tags.append("학생규모")
-            bullets.append(f"학생 수 {student_label}명을 기준으로 학교 규모 점수가 반영됨")
-
-    if int(row.get("has_request", 0) or 0) == 1:
-        tags.append("신청수요")
-        bullets.append("학교가 제출한 신청 수요가 있어 신청 가점 및 계획서 적합성 판단에 반영됨")
-    if int(row.get("urgent_flag", 0) or 0) == 1:
-        tags.append("긴급")
-        bullets.append("긴급지원 표시가 있어 우선 검토 점수에 반영됨")
-
-    region_type = str(row.get("region_type", row.get("지역유형", ""))).strip()
-    if region_type in ["읍면형", "농산어촌", "도서벽지"]:
-        tags.append(f"{region_type} 보정")
-        bullets.append(f"지역 유형이 {region_type}이므로 접근성·지역 여건을 고려한 지역 보정이 반영됨")
-    elif region_type == "도농형":
-        tags.append("도농형 보정")
-        bullets.append("도농형 지역 특성을 고려하여 일부 지역 보정이 반영됨")
-
-    finance_type = str(row.get("finance_type", row.get("재정유형", ""))).strip()
-    if finance_type == "사립":
-        tags.append("재정보정")
-        bullets.append("재정 유형이 사립으로 표시되어 재정 여건 차이를 고려한 보정이 반영됨")
-
-    try:
-        facility = float(row.get("support_facility_score", np.nan))
-    except Exception:
-        facility = np.nan
-    if pd.notna(facility):
-        if facility <= 50:
-            tags.append("시설취약")
-            bullets.append(f"시설지원점수 {facility:.1f}점으로 시설 취약 가능성이 있어 시설 보정 검토 대상에 포함됨")
-        elif facility <= 65:
-            tags.append("시설점검")
-            bullets.append(f"시설지원점수 {facility:.1f}점으로 시설 여건이 일부 반영됨")
-
-    area = str(row.get("first_choice_area_norm", row.get("지원영역", row.get("first_choice_area", "")))).strip()
-    if area:
-        tags.append(area)
-        bullets.append(f"지원 영역은 {area}이며, 학교급별 권장영역 및 영역별 기준단가 계산에 반영됨")
-
-    try:
-        need = float(row.get("need_score", np.nan))
-        plan = float(row.get("plan_score", np.nan))
-        budget = float(row.get("budget_fit_score", np.nan))
-        if pd.notna(need) and pd.notna(plan) and pd.notna(budget):
-            tags.append(f"종합 {need:.0f}/{plan:.0f}/{budget:.0f}")
-            bullets.append(f"수요점수 {need:.1f}점, 계획서점수 {plan:.1f}점, 예산정합성점수 {budget:.1f}점을 종합하여 최종점수를 산출함")
-    except Exception:
-        pass
-
-    if not tags:
-        tags = ["종합평가"]
-    if not bullets:
-        bullets = ["학생 규모, 신청 여부, 긴급성, 지역유형, 재정유형, 시설점수, 계획서 점수, 예산 적정성을 종합 반영함"]
-
-    # 표에서는 너무 길지 않도록 핵심 태그만 노출합니다.
-    return {"tags": tags[:5], "bullets": bullets}
-
-
-def make_score_reason_summary(row: pd.Series) -> str:
-    """표 안에 표시할 짧은 개조식 요약입니다."""
-    return " · ".join(_score_reason_parts(row)["tags"])
-
-
-def make_score_reason_detail(row: pd.Series) -> str:
-    """상세 패널에서 보여줄 근거 목록입니다."""
-    return "\n".join(_score_reason_parts(row)["bullets"])
-
-
-def add_score_reason_column(df: pd.DataFrame) -> pd.DataFrame:
-    if df.empty:
-        return df
-    out = df.copy()
-    out["산출 근거 요약"] = out.apply(make_score_reason_summary, axis=1)
-    out["상세 산출 근거"] = out.apply(make_score_reason_detail, axis=1)
-    # 이전 코드와의 호환을 위해 기존 컬럼명도 짧은 요약으로 유지합니다.
-    out["주요 산출 근거"] = out["산출 근거 요약"]
-    return out
-
-
-def render_score_reason_detail(df: pd.DataFrame, key_prefix: str, title: str = "선택 학교 상세 산출 근거") -> None:
-    """표 아래에서 학교를 선택하면 긴 산출 근거를 개조식으로 보여줍니다."""
-    if df.empty:
-        return
-    name_col = "school_display" if "school_display" in df.columns else ("학교" if "학교" in df.columns else None)
-    if name_col is None:
-        return
-
-    detail_df = add_score_reason_column(df.copy()) if "상세 산출 근거" not in df.columns else df.copy()
-    options = detail_df[name_col].astype(str).tolist()
-    if not options:
-        return
-    selected = st.selectbox("상세 근거를 확인할 학교 선택", options, key=f"{key_prefix}_reason_detail_select")
-    row = detail_df.iloc[options.index(selected)]
-
-    score = row.get("final_allocation_score", row.get("현재 최종점수", np.nan))
-    score_text = f" · 최종점수 {float(score):.1f}점" if pd.notna(score) else ""
-    meta = " · ".join([str(x) for x in [row.get("region_office", row.get("교육청", "")), row.get("school_level_group", row.get("학교급", "")), row.get("first_choice_area_norm", row.get("지원영역", ""))] if str(x).strip()])
-    bullets = str(row.get("상세 산출 근거", "")).split("\n")
-    items = "".join([f"<li>{b}</li>" for b in bullets if b.strip()])
-    st.markdown(
-        f"""
-        <div class='summary-box' style='min-height:auto; margin-top:0.7rem;'>
-            <div class='summary-title'>{title}</div>
-            <div class='school-name' style='margin-bottom:0.25rem;'>{selected}</div>
-            <div class='school-meta'>{meta}{score_text}</div>
-            <div class='summary-list'><ul>{items}</ul></div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
 
 
 def bar_chart(df: pd.DataFrame, x: str, y: str, title: str, horizontal: bool = False) -> None:
@@ -1684,13 +1480,13 @@ def render_global_filters(df: pd.DataFrame) -> None:
             apply_scenario_preset(scenario)
             st.rerun()
     with c4:
-        st.markdown("<div class='small-help' style='margin-top:0.3rem;'>🎓 학교급을 선택하면 해당 기준으로 다시 계산됩니다.</div>", unsafe_allow_html=True)
-        st.markdown("<div class='footer-note' style='margin-top:0.3rem;'>ℹ️ 정책 검토 지원을 위한 시연용 화면입니다.</div>", unsafe_allow_html=True)
+        st.markdown("<div class='small-help' style='margin-top:0.3rem;'>🎓 학교급 선택 시 해당 기준으로 재계산됩니다.</div>", unsafe_allow_html=True)
+        st.markdown("<div class='footer-note' style='margin-top:0.3rem;'>ℹ️ 정책 검토 지원용 시연 화면입니다.</div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
     level_pick = st.session_state.get("school_level_pick", "초등")
     desc = level_focus_text(level_pick)
-    st.markdown(f"<div class='engine-panel'><div class='engine-title'>⚙️ 현재 계산 방식</div><div class='engine-desc'><b>{level_caption(level_pick)}</b>&nbsp;&nbsp;{desc}</div></div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='engine-panel'><div class='engine-title'>⚙️ 현재 계산 엔진</div><div class='engine-desc'><b>{level_caption(level_pick)}</b>&nbsp;&nbsp;{desc}</div></div>", unsafe_allow_html=True)
 
 
 
@@ -1746,7 +1542,7 @@ def page_result_overview(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_
                 f"예산 재검토 필요 학교: {ai_review}개교",
             ])
             st.markdown("<div style='height:0.55rem;'></div>", unsafe_allow_html=True)
-            notice("학교급을 바꾸면 해당 기준으로 결과가 새로 계산됩니다.")
+            notice("학교급을 바꾸면 해당 학교급 기준으로 다시 계산됩니다.")
 
     elif "분포 현황" in sub:
         section_header("분포 현황", "선정 결과의 구성을 확인합니다.", f"{level_caption} 기준 분포")
@@ -1771,7 +1567,7 @@ def page_result_overview(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_
                 .reset_index(name="학교 수")
             ) if not selected_df.empty else pd.DataFrame(columns=["취약 신호 수", "학교 수"])
             bar_chart(signal_df, "취약 신호 수", "학교 수", "취약 신호별 학교 수", horizontal=False)
-        notice("전체 보기는 초·중·고를 각각 계산한 뒤 합산합니다. 학교급을 선택하면 해당 학교급 안에서만 비교합니다.")
+        notice("전체 보기는 학교급별 합산, 개별 보기는 해당 학교급 안에서만 비교합니다.")
 
     else:
         section_header("점수 비교", "현재 설정이 반영하는 학교 유형을 확인합니다.", f"{level_caption} · 수요·계획서·예산 적정성 평균 점수 비교")
@@ -1796,335 +1592,67 @@ def page_result_overview(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_
                     comp["평균"].tolist(),
                     "점수 구조 한눈에 보기"
                 )
-            notice("수요·계획서·예산 적정성 3가지 점수를 종합해 우선순위를 정합니다.")
-
-
-def settings_persistence_panel() -> None:
-    with st.expander("💾 설정 저장·불러오기", expanded=False):
-        st.markdown(
-            """
-            <div class='good-note' style='margin-top:0;'>
-            현재 화면의 값은 조정하는 즉시 계산에 반영됩니다. 다만 Streamlit Cloud 무료 배포 환경에서는
-            브라우저를 닫거나 앱이 재시작되면 기본값으로 돌아갈 수 있으므로, 중요한 설정은 파일로 저장해 두는 방식이 안전합니다.
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        a, b, c = st.columns([1, 1, 1])
-        with a:
-            if st.button("💾 현재 설정을 임시 저장", use_container_width=True):
-                st.session_state["saved_policy_config"] = get_policy_config()
-                st.session_state["saved_policy_message"] = f"저장됨: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}"
-        with b:
-            if st.button("↩️ 임시 저장값 불러오기", use_container_width=True):
-                saved = st.session_state.get("saved_policy_config")
-                if saved:
-                    apply_policy_config(saved)
-                    st.success("임시 저장한 설정을 다시 적용했습니다.")
-                    st.rerun()
-                else:
-                    st.warning("아직 임시 저장한 설정이 없습니다.")
-        with c:
-            if st.button("🔄 기본값으로 초기화", use_container_width=True):
-                reset_policy_config()
-                st.success("기본 설정으로 초기화했습니다.")
-                st.rerun()
-
-        st.download_button(
-            "⬇️ 설정 파일 다운로드(JSON)",
-            data=export_policy_config_json(),
-            file_name="ULTRA_policy_config.json",
-            mime="application/json",
-            use_container_width=True,
-        )
-        uploaded = st.file_uploader("저장해 둔 설정 파일 불러오기", type=["json"], key="policy_config_uploader")
-        if uploaded is not None:
-            try:
-                loaded = json.loads(uploaded.getvalue().decode("utf-8"))
-                config = loaded.get("config", loaded)
-                if st.button("📂 업로드한 설정 적용", use_container_width=True):
-                    apply_policy_config(config)
-                    st.success("업로드한 설정을 적용했습니다.")
-                    st.rerun()
-            except Exception as e:
-                st.error(f"설정 파일을 읽지 못했습니다: {e}")
-
-        msg = st.session_state.get("saved_policy_message")
-        if msg:
-            st.caption(msg)
-
-
-def guidance_card(title: str, body: str) -> None:
-    st.markdown(
-        f"""
-        <div class='logic-box'>
-            <div class='logic-title'>{title}</div>
-            <div class='logic-desc'>{body}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+            notice("수요·계획서·예산 적정성 세 가지 점수를 함께 반영해 순위를 정합니다.")
 
 
 def page_settings(base_df: pd.DataFrame) -> None:
     st.markdown("<div class='sub-tab-host'>", unsafe_allow_html=True)
     sub = nav_buttons(["📋 기본 설정", "🗂️ 영역별 단가", "⚖️ 보정 조정", "🔬 변경 효과 미리보기"], "sub_settings")
     st.markdown("</div>", unsafe_allow_html=True)
-    settings_persistence_panel()
-
     level_pick = st.session_state.get("school_level_pick", "초등")
     level_for_table = level_pick if level_pick in LEVELS else "초등"
 
     if "기본 설정" in sub:
-        section_header(
-            "배분 기준 설정",
-            "학교지원 예산을 어떤 방식으로 배분할지 정합니다.",
-            "총예산 · 학교당 지원 범위 · 신청/긴급 가점 · 학생 규모 반영 정도를 조정합니다.",
-        )
-        info1, info2, info3 = st.columns(3)
-        with info1:
-            guidance_card("① 총예산", "이번 시뮬레이션에서 쓸 전체 예산입니다. 값을 키우면 선정 학교 수가 늘어납니다.")
-        with info2:
-            guidance_card("② 가점", "신청 가점은 학교의 현장 수요, 긴급 가점은 즉시 지원 필요성을 더 강하게 반영합니다.")
-        with info3:
-            guidance_card("③ 학생 규모", "학생 수가 많은 학교를 더 반영할지 정합니다. 형평성을 중시하면 낮추고, 수혜 학생 수를 중시하면 높입니다.")
-
+        section_header("배분 기준 설정", "학교급별 배분 기준을 조정합니다.", "총예산 · 지원 범위 · 우선영역 · 점수 구조")
         c1, c2, c3 = st.columns(3)
         with c1:
-            st.slider(
-                "총예산(억 원)", 1, 200, key="budget_eok",
-                help="교육청 또는 사업 단위에서 이번 배분에 사용할 전체 예산입니다.",
-            )
-            st.caption("예: 30억이면 권장예산 합계가 30억을 넘지 않는 범위에서 학교를 선정합니다.")
-            st.slider(
-                "학교당 최대 지원 영역 수", 1, 5, key="max_support",
-                help="한 학교가 여러 영역을 신청했을 때 최대 몇 개 영역까지 지원할지 정합니다.",
-            )
-            st.caption("1개는 많은 학교에 얇게 지원, 3개 이상은 복합 위기 학교에 집중 지원하는 방식입니다.")
+            st.slider("총예산(억 원)", 1, 200, key="budget_eok")
+            st.slider("학교당 최대 지원 수", 1, 5, key="max_support")
         with c2:
-            st.number_input(
-                "신청 가점", 0, 40, key="request_bonus",
-                help="학교가 실제로 지원을 신청한 경우 부여하는 가점입니다. 현장 수요 중심일수록 높입니다.",
-            )
-            st.caption("권장 범위: 15~25점 / 현장 신청을 강하게 반영하려면 25점 이상")
-            st.number_input(
-                "긴급 가점", 0, 40, key="urgent_bonus",
-                help="긴급 지원 필요 학교에 부여하는 가점입니다. 위기 대응형 시나리오에서 높입니다.",
-            )
-            st.caption("권장 범위: 10~20점 / 긴급 사안을 우선하려면 20점 이상")
+            st.number_input("신청 가점", 0, 40, key="request_bonus")
+            st.number_input("긴급 가점", 0, 40, key="urgent_bonus")
         with c3:
-            st.number_input(
-                "학생 규모 가중치", 0.1, 2.0, key="size_weight", step=0.1,
-                help="학생 수가 많은 학교의 우선도를 얼마나 반영할지 정합니다.",
-            )
-            st.caption("0.5 이하는 소규모·취약 학교 배려, 1.0은 기본, 1.5 이상은 수혜 인원 중심입니다.")
+            st.number_input("학생 규모 가중치", 0.1, 2.0, key="size_weight", step=0.1)
             focus = ", ".join(LEVEL_FOCUS.get(level_for_table, []))
             notice(f"{level_for_table} 핵심 권장 영역: {focus}")
-        notice("값을 바꾸면 결과가 즉시 다시 계산됩니다. 장기 보관이 필요하면 위의 '설정 파일 다운로드'를 사용하세요.")
+        notice("학교급 변경 시 영역 우선도·표준단가·예산 기준이 함께 바뀝니다.")
 
     elif "영역별 단가" in sub:
-        section_header(
-            "영역별 표준단가",
-            "권장예산 계산의 출발점이 되는 기준단가를 조정합니다.",
-            f"현재 편집 기준: {level_for_table} · 기준단가 × 학생수/취약성/운영난이도 보정 = 학교별 권장예산",
-        )
-        st.markdown(
-            """
-            <div class='good-note'>
-            표준단가는 '이 영역을 한 학교에서 운영하려면 기본적으로 어느 정도가 필요한가'를 나타내는 기준값입니다.
-            실제 운영에서는 교육청의 목적사업비 승인액, 학교 신청액, 이전 집행액의 중앙값을 반영해 보정할 수 있습니다.
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        section_header("영역별 표준단가", "학교급별 기준단가를 확인합니다.", f"현재 기준: {level_for_table}")
         rows = []
         for area, mapping in STANDARD_COSTS.items():
-            current = int(get_standard_cost(area, level_for_table))
-            default = int(mapping[level_for_table])
-            diff = current - default
             rows.append({
                 "영역": area,
-                "초등": fmt_money(get_standard_cost(area, "초등")),
-                "중등": fmt_money(get_standard_cost(area, "중등")),
-                "고등": fmt_money(get_standard_cost(area, "고등")),
-                "현재 기준단가": fmt_money(current),
-                "기본값 대비": fmt_money(diff) if diff else "변동 없음",
+                "초등": fmt_money(mapping["초등"]),
+                "중등": fmt_money(mapping["중등"]),
+                "고등": fmt_money(mapping["고등"]),
+                "현재 학교급 기준": fmt_money(mapping.get(level_for_table, mapping["중등"])),
             })
         pretty_df(pd.DataFrame(rows))
-
-        st.markdown("#### 현재 학교급 기준단가 직접 조정")
-        c_left, c_right = st.columns(2)
-        for idx, area in enumerate(AREAS):
-            col = c_left if idx % 2 == 0 else c_right
-            with col:
-                default = int(STANDARD_COSTS[area][level_for_table])
-                st.number_input(
-                    f"{level_for_table} · {area}",
-                    min_value=1_000_000,
-                    max_value=100_000_000,
-                    step=1_000_000,
-                    key=cost_key(level_for_table, area),
-                    help=f"기본값: {fmt_money(default)}. 이 값은 권장예산 산출의 출발 단가입니다.",
-                )
-        r1, r2 = st.columns(2)
-        with r1:
-            if st.button(f"↩️ {level_for_table} 단가만 기본값으로 되돌리기", use_container_width=True):
-                for area in AREAS:
-                    st.session_state[cost_key(level_for_table, area)] = int(STANDARD_COSTS[area][level_for_table])
-                st.rerun()
-        with r2:
-            st.caption("다른 학교급 단가는 상단의 학교급 선택을 바꾼 뒤 조정하세요.")
-        notice("현재 표준단가는 시연용 기준값이며, 실제 운영 시 교육청 승인·집행액의 중앙값을 반영해 지속 보정할 수 있습니다.")
+        notice("표준단가는 실제 승인·집행 사례 중앙값 기준이며 지속 보정 가능합니다.")
 
     elif "보정 조정" in sub:
-        section_header(
-            "보정계수 설정",
-            "같은 신청이라도 더 배려해야 할 학교의 조건을 반영합니다.",
-            "재정유형·지역여건·시설취약성 보정값을 조정하고, 현재 배분 공식을 확인합니다.",
-        )
-        guide_cols = st.columns(3)
-        with guide_cols[0]:
-            guidance_card("재정 보정", "사립 등 재정 여건 차이를 반영합니다. 재정 형평성을 강조할수록 높입니다.")
-        with guide_cols[1]:
-            guidance_card("지역 보정", "읍면형·농산어촌·도서벽지 등 접근성·지역 여건 차이를 반영합니다.")
-        with guide_cols[2]:
-            guidance_card("시설 보정", "시설점수 하위 25% 학교의 물리적 여건을 더 강하게 반영합니다.")
-
+        section_header("가중치 설정", "보정 계수를 조정합니다.", "재정·지역·시설 보정 값과 현재 배분 공식 확인")
         a, b, c = st.columns(3)
         with a:
-            st.number_input(
-                "재정 보정(사립)", 0.0, 10.0, key="finance_bonus", step=0.5,
-                help="사립 학교에 추가로 부여하는 보정점수입니다. 0이면 재정유형 보정을 하지 않습니다.",
-            )
-            st.caption("권장: 2~4점 / 재정 형평성 강화 시 5점 이상")
+            st.number_input("재정 보정(사립)", 0.0, 10.0, key="finance_bonus", step=0.5)
+            st.number_input("지역 보정", 0.0, 10.0, key="region_bonus", step=0.5)
         with b:
-            st.number_input(
-                "지역 보정", 0.0, 10.0, key="region_bonus", step=0.5,
-                help="농산어촌·도서벽지·읍면형 학교에 추가로 부여하는 보정점수입니다.",
-            )
-            st.caption("권장: 2~4점 / 지역 격차 완화 강조 시 5점 이상")
+            st.number_input("시설 보정(하위 25%)", 0.0, 10.0, key="facility_bonus_top", step=0.5)
         with c:
-            st.number_input(
-                "시설 보정(하위 25%)", 0.0, 10.0, key="facility_bonus_top", step=0.5,
-                help="시설점수가 낮은 하위 25% 학교에 추가로 부여하는 보정점수입니다.",
-            )
-            st.caption("권장: 3~5점 / 노후·공간 부족 반영 강화 시 6점 이상")
-
-        logic_text = "최종배분점수 = 0.45×수요점수 + 0.35×계획서점수 + 0.20×예산정합성점수"
-        st.markdown(f"<div class='logic-box'><div class='logic-title'>현재 서비스 해석식</div><div class='logic-desc'>{logic_text}</div></div>", unsafe_allow_html=True)
-        st.markdown(
-            """
-            <div class='warn-note'>
-            보정값을 높이면 해당 조건의 학교가 상위권으로 올라올 가능성이 커집니다. 다만 너무 높이면 신청 내용이나 예산 적정성보다 특정 조건이 과도하게 작동할 수 있습니다.
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+            logic_text = "최종배분점수 = 0.45×수요점수 + 0.35×계획서점수 + 0.20×예산정합성점수"
+            st.markdown(f"<div class='logic-box'><div class='logic-title'>현재 서비스 해석식</div><div class='logic-desc'>{logic_text}</div></div>", unsafe_allow_html=True)
+        notice("학교급별 엔진이 분리 실행되므로, 같은 가중치도 학교급마다 결과가 다릅니다.")
 
     else:
-        section_header(
-            "변경 효과 미리보기",
-            "현재 설정이 기본값과 비교해 결과를 어떻게 바꾸는지 확인합니다.",
-            f"기준: {level_for_table} · 선정 학교 수, 예산 사용액, 순위 변화, 신규 선정 학교를 비교합니다.",
-        )
-        if base_df.empty:
-            st.info("비교할 데이터가 없습니다.")
-            return
+        section_header("시뮬레이션 영향", "기준 변경 시 예상 영향을 확인합니다.", f"기준: {level_for_table}")
+        preview = pd.DataFrame({
+            "조정 항목": ["신청 가점", "긴급 가점", "시설 보정", "학생 규모 가중치"],
+            "예상 영향": ["신청학교 반영 증가", "긴급학교 우선도 증가", "시설 취약 학교 반영 증가", "대규모 학교 우선도 변화"],
+        })
+        pretty_df(preview)
+        notice("전체 보기는 학교급 분리 계산 후 합산, 개별 보기는 해당 학교급 결과만 표시합니다.")
 
-        current_config = get_policy_config()
-        default_config = {**BASE_POLICY_DEFAULTS, "scenario": "기본형", "standard_costs": {level: {area: int(STANDARD_COSTS[area][level]) for area in AREAS} for level in LEVELS}}
-        base_scored, base_selected, _, base_remaining = run_engine_with_config(base_df, default_config)
-        cur_scored, cur_selected, _, cur_remaining = run_engine_with_config(base_df, current_config)
-
-        total_budget = float(st.session_state.get("budget_eok", 30)) * 100_000_000
-        base_budget = base_selected["allocated_budget"].sum() if not base_selected.empty else 0
-        cur_budget = cur_selected["allocated_budget"].sum() if not cur_selected.empty else 0
-        m1, m2, m3, m4 = st.columns(4)
-        with m1:
-            metric_card("기본값 선정", f"{len(base_selected):,}개교", "기본 설정 기준")
-        with m2:
-            metric_card("현재 설정 선정", f"{len(cur_selected):,}개교", f"변화 {len(cur_selected)-len(base_selected):+,.0f}개교")
-        with m3:
-            metric_card("예산 사용액 변화", fmt_money(cur_budget - base_budget), "현재 - 기본")
-        with m4:
-            usage = 0 if total_budget <= 0 else cur_budget / total_budget * 100
-            metric_card("현재 예산 사용률", f"{usage:.1f}%", f"잔액 {fmt_money(cur_remaining)}")
-
-        st.markdown(
-            """
-            <div class='good-note'>
-            표에는 비교가 쉽도록 <b>산출 근거 요약</b>만 짧게 표시합니다. 자세한 근거는 표 아래의 <b>선택 학교 상세 산출 근거</b>에서 확인할 수 있습니다.
-            최종점수는 학생수, 신청 여부, 긴급성, 지역유형, 재정유형, 시설점수, 계획서 점수, 예산 적정성 점수를 함께 반영한 결과입니다.
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        base_ids = set(base_selected.get("__rowid", pd.Series(dtype=int)).tolist()) if not base_selected.empty else set()
-        cur_ids = set(cur_selected.get("__rowid", pd.Series(dtype=int)).tolist()) if not cur_selected.empty else set()
-        newly = cur_ids - base_ids
-        removed = base_ids - cur_ids
-
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown("#### 현재 설정에서 새로 선정된 학교")
-            if newly and not cur_selected.empty:
-                cols = ["school_display", "region_office", "school_level_group", "student_count", "region_type", "finance_type", "first_choice_area_norm", "final_allocation_score", "allocated_budget"]
-                temp = cur_selected[cur_selected["__rowid"].isin(newly)].copy().head(20)
-                temp = add_score_reason_column(temp)
-                cols_with_reason = [c for c in cols if c in temp.columns] + ["산출 근거 요약"]
-                show = temp[cols_with_reason]
-                show.columns = ["학교", "교육청", "학교급", "학생수", "지역유형", "재정유형", "지원영역", "최종점수", "배정예산", "산출 근거 요약"][:len(show.columns)]
-                pretty_df(show, height=360)
-            else:
-                st.info("기본값과 비교해 새로 선정된 학교가 없습니다.")
-        with c2:
-            st.markdown("#### 현재 설정에서 제외된 학교")
-            if removed and not base_selected.empty:
-                cols = ["school_display", "region_office", "school_level_group", "student_count", "region_type", "finance_type", "first_choice_area_norm", "final_allocation_score", "allocated_budget"]
-                temp = base_selected[base_selected["__rowid"].isin(removed)].copy().head(20)
-                temp = add_score_reason_column(temp)
-                cols_with_reason = [c for c in cols if c in temp.columns] + ["산출 근거 요약"]
-                show = temp[cols_with_reason]
-                show.columns = ["학교", "교육청", "학교급", "학생수", "지역유형", "재정유형", "지원영역", "기본점수", "배정예산", "기본 산출 근거 요약"][:len(show.columns)]
-                pretty_df(show, height=360)
-            else:
-                st.info("기본값과 비교해 제외된 학교가 없습니다.")
-
-        if not base_scored.empty and not cur_scored.empty and "__rowid" in base_scored.columns and "__rowid" in cur_scored.columns:
-            base_rank = base_scored.sort_values(["final_allocation_score", "우선 검토 점수"], ascending=[False, False]).copy()
-            cur_rank = cur_scored.sort_values(["final_allocation_score", "우선 검토 점수"], ascending=[False, False]).copy()
-            base_rank["기본 순위"] = range(1, len(base_rank) + 1)
-            cur_rank["현재 순위"] = range(1, len(cur_rank) + 1)
-            comp_source_cols = [
-                "__rowid", "school_display", "region_office", "school_level_group", "student_count",
-                "region_type", "finance_type", "first_choice_area_norm", "need_score", "plan_score",
-                "budget_fit_score", "final_allocation_score", "현재 순위"
-            ]
-            comp = cur_rank[[c for c in comp_source_cols if c in cur_rank.columns]].merge(
-                base_rank[["__rowid", "기본 순위"]], on="__rowid", how="left"
-            )
-            comp["순위 변화"] = comp["기본 순위"] - comp["현재 순위"]
-            comp = comp.sort_values("순위 변화", ascending=False).head(15)
-            comp_detail = add_score_reason_column(comp.copy())
-            comp_show = comp_detail.rename(columns={
-                "school_display": "학교", "region_office": "교육청", "school_level_group": "학교급",
-                "student_count": "학생수", "region_type": "지역유형", "finance_type": "재정유형",
-                "first_choice_area_norm": "지원영역", "final_allocation_score": "현재 최종점수",
-            })
-            st.markdown("#### 순위가 많이 올라간 학교")
-            pretty_df(comp_show[["학교", "교육청", "학교급", "학생수", "지역유형", "재정유형", "지원영역", "기본 순위", "현재 순위", "순위 변화", "현재 최종점수", "산출 근거 요약"]], height=420)
-            render_score_reason_detail(comp_detail, key_prefix="rank_up_change", title="선택 학교 상세 산출 근거")
-
-        st.markdown(
-            """
-            <div class='good-note'>
-            '변경 효과 미리보기'는 저장 기능이 아니라, 지금 조정한 기준이 기본 기준 대비 어떤 학교를 더 우선하게 만드는지 검토하는 화면입니다.
-            심사·보고서에서는 이 화면을 근거로 '가중치를 바꾸어도 결과가 어떻게 달라지는지 검증했다'고 설명할 수 있습니다.
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
 
 
 def page_application_eval(base_df: pd.DataFrame, selected_df: pd.DataFrame) -> None:
@@ -2232,14 +1760,14 @@ def page_school_report(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_df
     school = st.selectbox('학교 리포트 대상', schools, key='report_school')
     row = base_df[base_df['school_display'] == school].iloc[0]
     status = '선정' if row['__rowid'] in selected_df['__rowid'].tolist() else '보류'
-    section_header("학교 상세 보기", "이 학교의 점수·예산·다음 행동을 확인합니다.", "선정·보류 사유 · 권장예산 근거 · 다음 할 일")
+    section_header("학교 리포트", "개별 학교의 점수·예산·후속 행동을 확인합니다.", "선정·보류 사유 · 권장예산 근거 · 다음 행동")
     m1, m2, m3, m4, m5 = st.columns([1.45, 0.9, 1.0, 1.0, 1.0])
     with m1:
         school_identity_card(row["school_name"], f"{row['region_office']} · {row['school_level_group']} · {row.get('first_choice_area_norm', '')}")
     with m2:
         metric_card("상태", status)
     with m3:
-        metric_card("최종 배분 점수", f"{float(row.get('final_allocation_score', row.get('우선 검토 점수', 0)) or 0):.1f}점")
+        metric_card("최종배분점수", f"{row.get('final_allocation_score', row['우선 검토 점수']):.1f}")
     with m4:
         metric_card("권장예산", fmt_money(row["recommended_budget"]))
     with m5:
@@ -2269,7 +1797,7 @@ def page_school_report(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_df
             "점수": [row.get("size_pct_score", 0), row.get("urgent_pct_score", 0), row.get("finance_pct_score", 0), row.get("facility_pct_score", 0), row.get("region_pct_score", 0)],
         })
         bar_chart(detail, "세부 항목", "점수", "수요 점수 세부 내역", horizontal=True)
-        notice("점수는 우선 검토 순서를 제안하는 참고값입니다. 최종 지원 여부는 담당자가 결정합니다.")
+        notice("이 점수는 우선 검토 순서를 제안하는 참고 자료이며, 최종 결정은 담당자가 내립니다.")
 
     elif "예산 풀이" in sub:
         explain = pd.DataFrame({
@@ -2290,7 +1818,7 @@ def page_school_report(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_df
             "점수": [row.get("budget_total_fit_score", 0), row.get("budget_item_fit_score", 0), row.get("budget_case_fit_score", 0), row.get("budget_fit_score", 0)],
         })
         bar_chart(fit, "항목", "점수", "예산 설명", horizontal=True)
-        notice("권장예산은 기준단가에 학생규모·취약도·운영난도 계수를 곱해 산출합니다.")
+        notice("기준단가 × 보정계수 구조로 권장예산 근거를 투명하게 제공합니다.")
 
     elif "종합 의견" in sub:
         verdict = "적정" if abs(row.get("budget_gap_ratio", 0)) <= 0.15 else ("다소 높음" if row.get("budget_gap_ratio", 0) > 0 else "다소 낮음")
@@ -2299,7 +1827,7 @@ def page_school_report(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_df
             f"가장 큰 강점은 {row.get('first_choice_area_norm', '')} 영역과 {row.get('focus_area_top1', '')} 중심 정책 우선도 일치입니다.",
             f"예산 적정성 판정은 '{verdict}'이며, 신청 예산과 권장 예산 차이는 {row.get('budget_gap_ratio', 0) * 100:.1f}%입니다.",
         ])
-        notice("이 내용은 검토를 돕는 참고 자료입니다. 최종 판단은 담당자가 직접 내려주세요.")
+        notice("이 요약은 검토를 돕는 참고 자료이며, 최종 해석은 담당자가 수행합니다.")
 
     else:
         actions = []
@@ -2318,412 +1846,60 @@ def page_school_report(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_df
 
 
 def page_quality(base_df: pd.DataFrame) -> None:
-    """자료 점검 화면: 원자료 결측·보완값·확인 필요 학교를 사용자가 이해하기 쉬운 검토 흐름으로 표시."""
-    quality_options = ["📌 한눈에 보기", "① 원자료 결측", "② 보완값 사용", "③ 확인 필요 학교", "📖 해석 가이드"]
-    if st.session_state.get("sub_quality") not in quality_options:
-        st.session_state["sub_quality"] = quality_options[0]
-
     st.markdown("<div class='sub-tab-host'>", unsafe_allow_html=True)
-    sub = nav_buttons(quality_options, "sub_quality")
+    sub = nav_buttons(["🛡️ 신뢰도 요약", "⬜ 빠진 자료 현황", "⚠️ 주의 학교 목록", "📖 결과 읽는 법"], "sub_quality")
     st.markdown("</div>", unsafe_allow_html=True)
+    miss_cols = ["budget_total", "settlement_total", "building_area_total", "land_area_total", "support_facility_score"]
+    missing_df = pd.DataFrame({
+        "항목": miss_cols,
+        "미입력 학교 수": [int(base_df[c].isna().sum()) if c in base_df.columns else len(base_df) for c in miss_cols],
+    })
+    warnings = base_df[base_df["warning_flag"] == 1].copy()
 
-    if base_df is None or base_df.empty:
-        section_header("자료 점검", "현재 선택 조건에 해당하는 학교가 없습니다.", "교육청·학교급 필터를 조정해 주세요.")
-        st.info("표시할 데이터가 없어 결측·보완·확인 필요 학교 현황을 계산하지 않았습니다.")
-        return
-
-    # ------------------------------------------------------------------
-    # 1) 원자료 결측 집계
-    # ------------------------------------------------------------------
-    core_items = [
-        {
-            "col": "student_count",
-            "label": "학생수",
-            "meaning": "학교 규모와 수혜 가능 학생 수 판단",
-            "impact": "학생 규모 점수·권장예산 보정에 영향",
-            "action": "학교 기본현황 자료 확인",
-        },
-        {
-            "col": "budget_total",
-            "label": "예산총액",
-            "meaning": "학교 재정 규모 확인",
-            "impact": "예산 적정성 해석에 영향",
-            "action": "예산서 원자료 확인",
-        },
-        {
-            "col": "settlement_total",
-            "label": "결산총액",
-            "meaning": "실제 집행 규모 확인",
-            "impact": "예산 사용 여력·집행성 판단에 영향",
-            "action": "결산서 원자료 확인",
-        },
-        {
-            "col": "building_area_total",
-            "label": "교사면적",
-            "meaning": "학교 시설 규모 확인",
-            "impact": "시설 여건·공간 부족 해석에 영향",
-            "action": "학교시설 현황 확인",
-        },
-        {
-            "col": "land_area_total",
-            "label": "학교용지면적",
-            "meaning": "학교 부지 규모 확인",
-            "impact": "시설 여건·공간 여력 해석에 영향",
-            "action": "학교시설 현황 확인",
-        },
-        {
-            "col": "support_facility_score",
-            "label": "시설점수",
-            "meaning": "시설 취약 정도를 요약한 분석용 점수",
-            "impact": "시설 보정 및 취약성 판단에 직접 영향",
-            "action": "시설점수 산출 근거 확인",
-        },
-    ]
-    label_map = {item["col"]: item["label"] for item in core_items}
-
-    missing_rows = []
-    for item in core_items:
-        col = item["col"]
-        missing_count = int(base_df[col].isna().sum()) if col in base_df.columns else len(base_df)
-        missing_rows.append({
-            "점검 항목": item["label"],
-            "원자료 컬럼": col,
-            "무엇을 뜻하나": item["meaning"],
-            "미입력 학교 수": missing_count,
-            "미입력 비율(%)": round(missing_count / max(len(base_df), 1) * 100, 1),
-            "결과에 미치는 영향": item["impact"],
-            "권장 조치": item["action"],
-        })
-    missing_df = pd.DataFrame(missing_rows)
-    total_missing = int(missing_df["미입력 학교 수"].sum())
-    if total_missing > 0:
-        top_row = missing_df.sort_values("미입력 학교 수", ascending=False).iloc[0]
-        top_missing_label = f"{top_row['점검 항목']} {int(top_row['미입력 학교 수']):,}건"
-    else:
-        top_missing_label = "없음"
-
-    # ------------------------------------------------------------------
-    # 2) 보완값 사용 집계
-    # ------------------------------------------------------------------
-    filled_flag_cols = [
-        c for c in base_df.columns
-        if str(c).endswith("_filled_flag") or str(c).endswith("_imputed_flag")
-    ]
-
-    def flag_to_bool(s: pd.Series) -> pd.Series:
-        if pd.api.types.is_numeric_dtype(s):
-            return pd.to_numeric(s, errors="coerce").fillna(0) > 0
-        normalized = s.astype(str).str.strip().str.lower()
-        return normalized.isin(["1", "true", "t", "y", "yes", "보완", "대체", "imputed", "filled"])
-
-    filled_rows = []
-    filled_masks = []
-    for flag_col in filled_flag_cols:
-        mask = flag_to_bool(base_df[flag_col])
-        filled_masks.append(mask)
-        target = flag_col.replace("_filled_flag", "").replace("_imputed_flag", "")
-        count = int(mask.sum())
-        rate = round(count / max(len(base_df), 1) * 100, 1)
-        if rate >= 50:
-            risk = "높음"
-            action = "원자료 확보 후 재계산 권장"
-        elif rate >= 10:
-            risk = "중간"
-            action = "상위 학교 중심 원자료 확인"
-        elif rate > 0:
-            risk = "낮음"
-            action = "해당 학교만 확인"
-        else:
-            risk = "없음"
-            action = "추가 조치 낮음"
-        filled_rows.append({
-            "보완 항목": label_map.get(target, target),
-            "보완 플래그 컬럼": flag_col,
-            "보완 적용 학교 수": count,
-            "보완 적용 비율(%)": rate,
-            "해석 주의도": risk,
-            "권장 조치": action,
-        })
-    filled_df = pd.DataFrame(filled_rows) if filled_rows else pd.DataFrame(
-        columns=["보완 항목", "보완 플래그 컬럼", "보완 적용 학교 수", "보완 적용 비율(%)", "해석 주의도", "권장 조치"]
-    )
-    total_filled_cells = int(filled_df["보완 적용 학교 수"].sum()) if not filled_df.empty else 0
-    if filled_masks:
-        any_filled = filled_masks[0].copy()
-        for m in filled_masks[1:]:
-            any_filled = any_filled | m
-        unique_filled_schools = int(any_filled.sum())
-    else:
-        unique_filled_schools = 0
-
-    # ------------------------------------------------------------------
-    # 3) 확인 필요 학교 집계
-    # ------------------------------------------------------------------
-    if "warning_flag" in base_df.columns:
-        warning_mask = pd.to_numeric(base_df["warning_flag"], errors="coerce").fillna(0).astype(int) == 1
-        warnings = base_df[warning_mask].copy()
-    else:
-        warnings = base_df.iloc[0:0].copy()
-
-    def infer_warning_reason(row: pd.Series) -> str:
-        # 이미 main()에서 생성한 warning_reason이 있으면 우선 사용합니다.
-        existing = str(row.get("warning_reason", "")).strip()
-        if existing and existing.lower() not in ["nan", "none", ""]:
-            return existing
-
-        reasons = []
-        if pd.isna(row.get("student_count", np.nan)):
-            reasons.append("학생수 미입력")
-        else:
-            try:
-                if float(row.get("student_count", 0)) > 5000:
-                    reasons.append("학생수 이상치·대규모 학교 확인")
-            except Exception:
-                pass
-        if int(row.get("has_request", 0) or 0) == 1 and pd.isna(row.get("support_facility_score", np.nan)):
-            reasons.append("신청 학교의 시설점수 미입력")
-        critical_cols = ["student_count", "support_facility_score", "region_type", "finance_type"]
-        critical_missing = 0
-        for c in critical_cols:
-            value = row.get(c, np.nan)
-            if pd.isna(value) or str(value).strip() in ["", "미입력", "nan", "None"]:
-                critical_missing += 1
-        if critical_missing >= 2:
-            reasons.append("핵심 판단 항목 2개 이상 미입력")
-        if not reasons:
-            reasons.append("점수 산출 전 원자료 추가 확인")
-        return " / ".join(reasons)
-
-    def warning_action(reason: str) -> str:
-        reason = str(reason)
-        if "학생수" in reason:
-            return "학생 수 원자료와 학교 규모 확인"
-        if "시설" in reason:
-            return "시설 원자료와 시설점수 산출식 확인"
-        if "핵심" in reason or "미입력" in reason:
-            return "필수 항목 보완 후 재계산"
-        return "담당자 원자료 검토 후 확정"
-
-    if not warnings.empty:
-        warnings["확인 사유"] = warnings.apply(infer_warning_reason, axis=1)
-        warnings["권장 조치"] = warnings["확인 사유"].map(warning_action)
-
-    # ------------------------------------------------------------------
-    # 4) 사용자용 상태 판정
-    # ------------------------------------------------------------------
-    warning_count = len(warnings)
-    if total_missing == 0 and total_filled_cells == 0 and warning_count == 0:
-        status_label = "양호"
-        status_desc = "현재 선택 조건에서는 주요 결측·보완·확인 필요 신호가 크지 않습니다."
-        status_color = "#0f8a5f"
-    elif total_missing == 0 and (total_filled_cells > 0 or warning_count > 0):
-        status_label = "검토 후 사용"
-        status_desc = "자동 추천 산출은 가능하지만, 보완값 또는 확인 필요 학교가 있어 최종 확정 전 원자료 점검이 필요합니다."
-        status_color = "#b45309"
-    else:
-        status_label = "보완 필요"
-        status_desc = "주요 항목에 미입력이 있어 결과 해석 전에 원자료 보완이 우선입니다."
-        status_color = "#b91c1c"
-
-    # ------------------------------------------------------------------
-    # 화면 구성
-    # ------------------------------------------------------------------
-    if "한눈에 보기" in sub:
-        section_header(
-            "자료 점검 대시보드",
-            "자동 추천 결과를 확정하기 전에 데이터 상태를 한눈에 확인합니다.",
-            "원자료 결측, 전처리 보완값, 확인 필요 학교를 분리해 해석합니다.",
-        )
-
-        st.markdown(
-            f"""
-            <div class='good-note' style='border-left-color:{status_color}; background:#ffffff;'>
-                <div style='font-weight:900; color:{status_color}; font-size:1.05rem; margin-bottom:0.25rem;'>현재 자료 판정: {status_label}</div>
-                <div style='color:#2c4060; line-height:1.7;'>{status_desc}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        c1, c2, c3, c4 = st.columns(4)
+    if "신뢰도 요약" in sub:
+        section_header("데이터 신뢰도", "결측·경고 항목을 점검합니다.", "결측 = 미입력 · 실제 집행 전 원자료 재확인 필요")
+        c1, c2, c3 = st.columns(3)
         with c1:
-            metric_card("분석 대상", f"{len(base_df):,}개교", "현재 교육청·학교급 조건")
+            metric_card("추가 확인 학교 수", f"{len(warnings):,}개교")
         with c2:
-            metric_card("원자료 미입력", f"{total_missing:,}건", f"최다 항목: {top_missing_label}")
+            metric_card("주요 미입력 합계", f"{int(missing_df['미입력 학교 수'].sum()):,}건")
         with c3:
-            metric_card("보완값 사용", f"{unique_filled_schools:,}개교", f"항목-학교 기준 {total_filled_cells:,}건")
+            top_missing = missing_df.sort_values("미입력 학교 수", ascending=False).iloc[0]["항목"]
+            metric_card("최다 결측 항목", str(top_missing))
+        c4, c5 = st.columns(2)
         with c4:
-            metric_card("확인 필요 학교", f"{warning_count:,}개교", "탈락 기준이 아닌 점검 목록")
-
-        st.markdown("#### 이 화면에서 확인할 3가지")
-        a, b, c = st.columns(3)
-        with a:
-            st.markdown(
-                """
-                <div class='logic-box'>
-                    <div class='logic-title'>1. 원자료 결측</div>
-                    <div class='logic-desc'>CSV에 값이 비어 있는 항목입니다. 0점 처리하지 않고 원자료 확인 또는 보완 대상으로 봅니다.</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with b:
-            st.markdown(
-                """
-                <div class='logic-box'>
-                    <div class='logic-title'>2. 보완값 사용</div>
-                    <div class='logic-desc'>평균·중앙값·학교급 기준값 등으로 대체한 값입니다. 분석은 가능하지만 실제 집행 전 근거 확인이 필요합니다.</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with c:
-            st.markdown(
-                """
-                <div class='logic-box'>
-                    <div class='logic-title'>3. 확인 필요 학교</div>
-                    <div class='logic-desc'>이상치·핵심 항목 부족 등 담당자 검토가 필요한 학교입니다. 자동 제외나 탈락을 뜻하지 않습니다.</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-        left, right = st.columns(2)
-        with left:
-            st.markdown("#### 원자료 미입력 요약")
-            if total_missing == 0:
-                notice("현재 선택 조건에서는 주요 항목 미입력이 없습니다.")
+            bar_chart(missing_df, "항목", "미입력 학교 수", "항목별 미입력 현황", horizontal=True)
+        with c5:
+            warning_by_office = warnings["region_office"].value_counts().rename_axis("교육청").reset_index(name="경고 학교 수") if not warnings.empty else pd.DataFrame(columns=["교육청", "경고 학교 수"])
+            if len(warning_by_office) <= 1:
+                pretty_df(warning_by_office if not warning_by_office.empty else pd.DataFrame({"교육청": [st.session_state['office']], "경고 학교 수": [0]}))
+                notice("교육청이 1개인 경우 표로 표시합니다.")
             else:
-                chart_df = missing_df[missing_df["미입력 학교 수"] > 0].copy()
-                bar_chart(chart_df, "점검 항목", "미입력 학교 수", "미입력 항목별 학교 수", horizontal=True)
-        with right:
-            st.markdown("#### 보완·확인 필요 요약")
-            summary = pd.DataFrame({
-                "구분": ["보완값 사용 학교", "확인 필요 학교", "최종 해석"],
-                "현재 상태": [f"{unique_filled_schools:,}개교", f"{warning_count:,}개교", status_label],
-                "담당자 확인 포인트": [
-                    "보완 항목의 원자료 확보 여부",
-                    "확인 사유와 권장 조치",
-                    "자동 추천 결과 확정 가능 여부",
-                ],
-            })
-            pretty_df(summary, height=230)
+                bar_chart(warning_by_office, "교육청", "경고 학교 수", "교육청별 경고 현황")
+        notice("결측은 0점이 아닌 미입력입니다. 절대값보다 상대 비교를 우선하세요.", variant="warn")
 
-        notice("자료 점검 화면은 추천 결과의 신뢰도를 설명하기 위한 보조 화면입니다. 점검 대상이 있다고 해서 자동 탈락하거나 제외되는 것은 아닙니다.", variant="warn")
+    elif "빠진 자료 현황" in sub:
+        section_header("미입력 현황", "주요 항목 결측 현황을 확인합니다.", "미입력률 높은 항목은 원자료 확인 우선")
+        missing_df["미입력 비율(%)"] = (missing_df["미입력 학교 수"] / max(len(base_df), 1) * 100).round(1)
+        pretty_df(missing_df)
 
-    elif "원자료 결측" in sub:
-        section_header(
-            "① 원자료 결측 점검",
-            "CSV에서 값이 비어 있는 항목을 확인합니다.",
-            "미입력은 0이 아니라 ‘확인 또는 보완이 필요한 값’으로 해석합니다.",
-        )
-        if total_missing == 0:
-            notice("현재 분석용 데이터 기준으로 주요 항목 미입력은 없습니다.")
-            st.markdown("<div class='small-help'>단, 전처리 과정에서 이미 보완된 값은 원자료 결측으로 보이지 않을 수 있으므로 ‘보완값 사용’ 탭도 함께 확인하세요.</div>", unsafe_allow_html=True)
-        else:
-            notice("미입력 항목이 있는 경우 자동 추천 결과 확정 전에 원자료를 보완하는 것이 좋습니다.", variant="warn")
-        pretty_df(missing_df.sort_values("미입력 학교 수", ascending=False), height=420)
-
-    elif "보완값 사용" in sub:
-        section_header(
-            "② 보완값 사용 점검",
-            "전처리 과정에서 결측값을 평균·중앙값·학교급 기준값 등으로 채운 항목을 확인합니다.",
-            "보완값은 분석을 계속하기 위한 대체값이며, 원자료 자체를 의미하지 않습니다.",
-        )
-        if filled_flag_cols:
-            c1, c2, c3 = st.columns(3)
-            with c1:
-                metric_card("보완값 사용 학교", f"{unique_filled_schools:,}개교", "하나 이상 보완값 포함")
-            with c2:
-                metric_card("보완 항목-학교 건수", f"{total_filled_cells:,}건", "한 학교의 여러 항목 보완은 중복 집계")
-            with c3:
-                high_risk = int((filled_df["해석 주의도"] == "높음").sum()) if not filled_df.empty else 0
-                metric_card("주의도 높은 항목", f"{high_risk:,}개", "보완 비율 50% 이상")
-            pretty_df(filled_df.sort_values("보완 적용 학교 수", ascending=False), height=360)
-            high_items = filled_df[filled_df["해석 주의도"].eq("높음")]
-            if not high_items.empty:
-                items = " · ".join(high_items["보완 항목"].astype(str).tolist())
-                notice(f"{items} 항목은 보완 비율이 높습니다. 이 항목을 근거로 예산·시설 해석을 할 때에는 원자료 재확인이 필요합니다.", variant="warn")
-            else:
-                notice("보완값 사용 비율이 높은 항목은 크지 않습니다. 다만 실제 집행 전 핵심 학교의 원자료 확인은 권장됩니다.")
-        else:
-            st.info("현재 데이터에는 보완 여부를 나타내는 *_filled_flag 또는 *_imputed_flag 컬럼이 없습니다.")
-            st.markdown(
-                """
-                <div class='good-note'>
-                더 완성도 높은 운영을 위해서는 보완한 항목마다 <b>budget_total_filled_flag</b>,
-                <b>settlement_total_filled_flag</b>, <b>support_facility_score_filled_flag</b>처럼
-                ‘이 값이 원자료인지 보완값인지’를 표시하는 컬럼을 함께 두는 것이 좋습니다.
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-    elif "확인 필요 학교" in sub:
-        section_header(
-            "③ 확인 필요 학교 목록",
-            "자동 추천 결과를 확정하기 전에 담당자가 한 번 더 확인해야 할 학교를 보여줍니다.",
-            "확인 필요 학교는 탈락 대상이 아니라 원자료 검토가 필요한 학교입니다.",
-        )
-        if warnings.empty:
-            notice("현재 선택 조건에서는 확인 필요 학교가 없습니다.")
-        else:
-            show_cols = [
-                "school_name", "school_level_group", "region_office", "first_choice_area_norm",
-                "student_count", "final_allocation_score", "확인 사유", "권장 조치",
-            ]
-            show = warnings[[c for c in show_cols if c in warnings.columns]].copy()
-            rename = {
-                "school_name": "학교명",
-                "school_level_group": "학교급",
-                "region_office": "교육청",
-                "first_choice_area_norm": "지원영역",
-                "student_count": "학생수",
-                "final_allocation_score": "현재 최종점수",
-            }
-            show = show.rename(columns=rename)
-            pretty_df(show, height=440)
-
-            if "school_display" in warnings.columns:
-                options = warnings["school_display"].astype(str).tolist()
-            else:
-                options = warnings["school_name"].astype(str).tolist() if "school_name" in warnings.columns else []
-            if options:
-                st.markdown("#### 선택 학교 상세 점검")
-                picked = st.selectbox("상세 확인할 학교", options, key="quality_warning_pick")
-                row = warnings[(warnings.get("school_display", warnings.get("school_name")).astype(str) == picked)].iloc[0]
-                summary_box([
-                    f"확인 사유: {row.get('확인 사유', '원자료 추가 확인 필요')}",
-                    f"권장 조치: {row.get('권장 조치', '담당자 검토 후 확정')}",
-                    f"학생수: {fmt_int(row.get('student_count', 0))}명 · 지원영역: {row.get('first_choice_area_norm', '')} · 현재 최종점수: {row.get('final_allocation_score', 0):.1f}점",
-                    "이 학교는 자동 제외 대상이 아니라, 점수 해석 전에 근거 자료를 한 번 더 확인해야 하는 대상입니다.",
-                ])
-            notice("확인 필요 목록은 심사·검토 순서의 안전장치입니다. 최종 선정 여부는 원자료 확인과 담당자 판단을 거쳐 결정합니다.", variant="warn")
+    elif "주의 학교 목록" in sub:
+        section_header("경고 학교 목록", "추가 검토가 필요한 학교 목록입니다.", "이상치·결측이 있는 학교는 별도 검토 대상")
+        show = warnings[["school_name", "school_level_group", "region_office", "first_choice_area_norm", "student_count"]].copy() if not warnings.empty else pd.DataFrame(columns=["school_name", "school_level_group", "region_office", "first_choice_area_norm", "student_count"])
+        show.columns = ["학교명", "학교급", "교육청", "1순위 영역", "학생수"]
+        pretty_df(show)
 
     else:
-        section_header(
-            "자료 점검 결과 읽는 법",
-            "이 화면은 자동 추천 결과를 더 신뢰성 있게 설명하기 위한 보조 화면입니다.",
-            "자동 결정이 아닌 검토 보조 · 최종 판단은 담당자 몫입니다.",
-        )
-        st.markdown("#### 핵심 해석 원칙")
-        guide = pd.DataFrame({
-            "구분": ["원자료 결측", "보완값 사용", "확인 필요 학교", "최종 판단"],
-            "뜻": [
-                "CSV에 값이 비어 있는 상태",
-                "분석을 위해 평균·중앙값 등으로 임시 대체한 값",
-                "이상치·핵심 항목 부족 등으로 원자료 확인이 필요한 학교",
-                "자동 추천 점수와 담당자 검토를 함께 반영해 결정",
-            ],
-            "어떻게 해석하나": [
-                "0점이나 낮은 점수로 보지 않고, 원자료 확인 대상으로 봄",
-                "계산은 가능하지만 예산·시설 해석에는 주의가 필요함",
-                "탈락 대상이 아니라 검토 우선 대상임",
-                "자료 점검 후 필요하면 점수·보정 기준을 조정하고 재검토함",
-            ],
-        })
-        pretty_df(guide, height=270)
-        notice("보고서에는 ‘자료 점검 화면을 통해 결측·보완·확인 필요 학교를 분리하여 자동 추천 결과의 해석 가능성과 신뢰도를 높였다’고 설명하면 좋습니다.")
+        section_header("해석 원칙", "결과를 읽을 때 함께 봐야 할 원칙입니다.", "자동 결정이 아닌 검토 보조 · 최종 판단은 담당자 몫")
+        rules = [
+            "결측은 0이 아닌 미입력 — 추가 확인 대상으로 처리합니다.",
+            "배분점수는 우선 검토 순서 제안이며, 최종 판정 도구가 아닙니다.",
+            "시연 결과는 정책 검토 지원용이며, 실제 집행 전 현장 확인이 필요합니다.",
+            "권장예산은 자동 검토이며, 최종 금액은 담당자가 확정합니다.",
+        ]
+        for r in rules:
+            notice(r)
+
 
 # ------------------------------------------------------------
 # Main
@@ -2731,7 +1907,6 @@ def page_quality(base_df: pd.DataFrame) -> None:
 def main() -> None:
     inject_style()
     init_state()
-    keep_policy_state_alive()
     st.markdown(
         """
         <div class='title-panel'>
@@ -2739,7 +1914,7 @@ def main() -> None:
                 <div class='title-main-wrap'>
                     <div class='title-kicker'>🏫 교육 공공데이터 기반 학교지원 의사결정 서비스</div>
                     <div class='main-title'>ULTRA 학교지원<br>우선순위 추천 서비스</div>
-                    <div class='sub-title'>학교별 수요·계획서·예산 적정성을 함께 살펴보고,<br>어떤 학교를 왜 먼저 지원할지 근거와 함께 안내합니다.</div>
+                    <div class='sub-title'>학교급별 수요·계획서·예산 적정성을 함께 검토해,<br>어떤 학교를 왜 먼저 지원해야 하는지 설명형으로 보여줍니다.</div>
                     <div class='title-meta'>
                         <span class='title-meta-item'>📐 학교급별 분리 계산</span>
                         <span class='title-meta-item'>💰 권장예산 자동 계산</span>
@@ -2776,7 +1951,7 @@ def main() -> None:
 
     raw = load_data()
     if raw.empty:
-        st.warning("데이터 파일(school_master_final_v2.csv)을 찾지 못했습니다. 앱 파일과 같은 폴더에 CSV가 있어야 합니다. 아래에 샘플 데이터로 미리 보기를 표시합니다.")
+        st.warning("school_master_final_v2.csv 파일을 찾지 못했습니다. 이 코드는 스크립트와 같은 폴더 또는 작업 폴더에 CSV가 있을 때 바로 실행됩니다.")
         demo = pd.DataFrame({
             "school_name": ["서울대도초등학교", "공주신월초등학교", "천안아름초등학교", "진영여자고등학교", "공주여자중학교"],
             "region_office": ["서울", "충남", "충남", "경남", "충남"],
@@ -2811,31 +1986,6 @@ def main() -> None:
         | (critical_missing_count >= 2)
     )
     df["warning_flag"] = core_warning.astype(int)
-
-    # 자료 점검 화면에서 사용자가 왜 확인해야 하는지 바로 볼 수 있도록 사유를 함께 저장합니다.
-    def _warning_reason_for_row(row: pd.Series) -> str:
-        reasons = []
-        if pd.isna(row.get("student_count", np.nan)):
-            reasons.append("학생수 미입력")
-        else:
-            try:
-                if float(row.get("student_count", 0)) > 5000:
-                    reasons.append("학생수 이상치")
-            except Exception:
-                pass
-        if int(row.get("has_request", 0) or 0) == 1 and pd.isna(row.get("support_facility_score", np.nan)):
-            reasons.append("신청 학교의 시설점수 미입력")
-        critical_cols = ["student_count", "support_facility_score", "region_type", "finance_type"]
-        critical_missing = 0
-        for c in critical_cols:
-            value = row.get(c, np.nan)
-            if pd.isna(value) or str(value).strip() in ["", "미입력", "nan", "None"]:
-                critical_missing += 1
-        if critical_missing >= 2:
-            reasons.append("핵심 항목 2개 이상 미입력")
-        return " / ".join(reasons) if reasons else ""
-
-    df["warning_reason"] = df.apply(_warning_reason_for_row, axis=1)
 
     render_global_filters(df)
 
@@ -2880,7 +2030,7 @@ def main() -> None:
     if "결과 한눈에 보기" in page:
         page_result_overview(scored, selected_df, hold_df, remaining)
     elif "지원 기준 설정" in page:
-        page_settings(scope_df)
+        page_settings(scored)
     elif "학교별 평가·예산" in page:
         page_application_eval(scored, selected_df)
     elif "학교 상세 보기" in page:
