@@ -176,85 +176,91 @@ def inject_style() -> None:
         }
         @media (max-width: 860px) { .hero-stats { display: none; } }
 
-        /* ━━━ GNB 탭 바 — 흰 배경, 진한 글씨, 클릭 명확 ━━━ */
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           ULTRA 디자인 시스템 v3
+           Primary   #0064C8   Secondary  #00A0E9
+           Success   #10B981   Warning    #F59E0B
+           Danger    #EF4444   Background #F0F4FA
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+        /* ── GNB 탭 바 ── */
         .top-nav-host {
             background: #ffffff;
             border: 1.5px solid #c8d8ee;
-            border-radius: 14px;
-            padding: 0.5rem 0.55rem;
-            margin: 0 0 1.3rem 0;
-            box-shadow: 0 4px 18px rgba(0,80,180,0.10);
+            border-radius: 16px;
+            padding: 0.52rem 0.6rem;
+            margin: 0 0 1.25rem 0;
+            box-shadow: 0 4px 20px rgba(0,80,180,0.09);
         }
 
-        /* 공통 폰트 — 모든 자식 포함 */
+        /* ── 버튼 공통 폰트 (Streamlit 내부 p/span 포함) ── */
         div[data-testid="stButton"] > button,
         div[data-testid="stButton"] > button > div,
         div[data-testid="stButton"] > button p,
-        div[data-testid="stButton"] > button span {
+        div[data-testid="stButton"] > button span,
+        div[data-testid="stButton"] button * {
             font-family: 'Pretendard', 'Noto Sans KR', sans-serif !important;
-            font-size: 1.02rem !important;
+            font-size: 0.97rem !important;
             font-weight: 700 !important;
             letter-spacing: -0.015em !important;
             line-height: 1.3 !important;
+            color: inherit !important;
         }
-        /* 비활성 기본 — 밝은 회색 배경 + 진한 글씨 */
+        /* 비활성 기본 */
         div[data-testid="stButton"] > button {
             border-radius: 10px !important;
-            min-height: 3.0rem !important;
+            min-height: 2.95rem !important;
             border: 1.5px solid #dde8f5 !important;
             background: #f2f6fc !important;
-            color: #2a3a52 !important;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
-            transition: background 0.14s, color 0.14s, border-color 0.14s, box-shadow 0.14s, transform 0.09s !important;
+            color: #1e3a5f !important;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
+            transition: background .13s, color .13s, border-color .13s,
+                        box-shadow .13s, transform .09s !important;
             padding: 0.5rem 0.7rem !important;
             cursor: pointer !important;
             width: 100%;
         }
-        /* 활성 탭 — 파란 배경 + 흰 글씨 + 입체 그림자 */
+        /* 활성 탭 */
         div[data-testid="stButton"] > button[kind="primary"],
         div[data-testid="stButton"] > button[kind="primary"] p,
         div[data-testid="stButton"] > button[kind="primary"] span {
             background: #0064c8 !important;
             color: #ffffff !important;
             border-color: #0053a8 !important;
-            box-shadow:
-                0 4px 14px rgba(0,100,200,0.35),
-                inset 0 -2px 0 rgba(0,40,120,0.18) !important;
+            box-shadow: 0 4px 14px rgba(0,100,200,0.32),
+                        inset 0 -2px 0 rgba(0,40,120,0.16) !important;
             font-weight: 800 !important;
         }
-        /* 비활성 hover */
         div[data-testid="stButton"] > button[kind="secondary"]:hover {
             background: #dceeff !important;
             color: #0053a8 !important;
             border-color: #90bce8 !important;
-            box-shadow: 0 2px 8px rgba(0,100,200,0.12) !important;
         }
-        /* 활성 hover */
         div[data-testid="stButton"] > button[kind="primary"]:hover {
             background: #0053a8 !important;
         }
-        /* 클릭 */
         div[data-testid="stButton"] > button:active {
-            transform: scale(0.96) !important;
+            transform: scale(0.962) !important;
             box-shadow: inset 0 2px 6px rgba(0,0,0,0.14) !important;
         }
 
-        /* ━━━ 서브탭 — 입체 회색 박스, 진한 글씨 ━━━ */
+        /* ── 서브탭 컨테이너 ── */
         .sub-tab-host {
             background: #f0f5fc;
             border: 1.5px solid #c4d4e8;
             border-radius: 12px;
             padding: 0.42rem 0.48rem;
             margin-bottom: 1.1rem;
-            box-shadow: 0 2px 8px rgba(0,60,150,0.07), inset 0 1px 0 #ffffff;
+            box-shadow: 0 2px 8px rgba(0,60,150,0.06),
+                        inset 0 1px 0 #ffffff;
         }
         .sub-tab-host div[data-testid="stButton"] > button {
             border-radius: 8px !important;
-            min-height: 2.6rem !important;
+            min-height: 2.55rem !important;
             background: #ffffff !important;
             border: 1.5px solid #d8e6f4 !important;
             color: #1e3a5f !important;
-            font-size: 0.96rem !important;
+            font-size: 0.93rem !important;
             font-weight: 700 !important;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
         }
@@ -264,7 +270,7 @@ def inject_style() -> None:
             background: #0064c8 !important;
             color: #ffffff !important;
             border-color: #0053a8 !important;
-            box-shadow: 0 3px 10px rgba(0,100,200,0.30) !important;
+            box-shadow: 0 3px 10px rgba(0,100,200,0.28) !important;
             font-weight: 800 !important;
         }
         .sub-tab-host div[data-testid="stButton"] > button[kind="secondary"]:hover {
@@ -273,30 +279,30 @@ def inject_style() -> None:
             border-color: #90bce8 !important;
         }
 
-        /* ━━━ 필터 패널 ━━━ */
+        /* ── 필터 패널 ── */
         .filter-panel {
             background: #ffffff;
             border: 1px solid #dde5f0;
             border-top: 3px solid #0064c8;
-            border-radius: 10px;
-            padding: 1rem 1.3rem 0.65rem 1.3rem;
+            border-radius: 12px;
+            padding: 1.05rem 1.35rem 0.7rem 1.35rem;
             margin-bottom: 0.9rem;
-            box-shadow: 0 2px 10px rgba(0,100,200,0.05);
+            box-shadow: 0 2px 12px rgba(0,100,200,0.05);
         }
         .engine-panel {
-            background: linear-gradient(135deg, #edf4ff 0%, #e8f6ff 100%);
-            border: 1px solid #c0d8f0;
-            border-left: 4px solid #00a0e9;
+            background: linear-gradient(135deg, #edf4ff 0%, #e6f4ff 100%);
+            border: 1px solid #bdd8f0;
+            border-left: 4px solid #0064c8;
             border-radius: 10px;
-            padding: 0.8rem 1.1rem;
-            margin: 0 0 1rem 0;
+            padding: 0.78rem 1.1rem;
+            margin: 0 0 1.05rem 0;
         }
         .engine-title {
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             font-weight: 800;
             color: #0064c8;
-            margin-bottom: 0.22rem;
-            letter-spacing: 0.06em;
+            margin-bottom: 0.2rem;
+            letter-spacing: 0.07em;
             text-transform: uppercase;
         }
         .engine-desc {
@@ -305,19 +311,19 @@ def inject_style() -> None:
             line-height: 1.62;
         }
 
-        /* ━━━ 섹션 헤더 카드 ━━━ */
+        /* ── 섹션 헤더 카드 ── */
         .section-card {
             background: #ffffff;
             border: 1px solid #dde5f0;
             border-top: 4px solid #0064c8;
-            border-radius: 10px;
-            padding: 1.2rem 1.5rem 1.05rem 1.5rem;
-            margin-bottom: 1.3rem;
-            box-shadow: 0 2px 10px rgba(0,100,200,0.05);
+            border-radius: 12px;
+            padding: 1.2rem 1.5rem 1rem 1.5rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 2px 12px rgba(0,100,200,0.05);
         }
         .mini-chip {
             display: inline-block;
-            padding: 0.22rem 0.65rem;
+            padding: 0.22rem 0.68rem;
             font-size: 0.7rem;
             font-weight: 700;
             color: #ffffff;
@@ -327,30 +333,30 @@ def inject_style() -> None:
             letter-spacing: 0.04em;
         }
         .section-title {
-            font-size: 1.22rem;
+            font-size: 1.2rem;
             font-weight: 800;
             color: #0d2d52;
-            margin-bottom: 0.3rem;
-            line-height: 1.3;
+            margin-bottom: 0.28rem;
+            line-height: 1.32;
             letter-spacing: -0.03em;
             font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
         }
         .section-desc {
             font-size: 0.875rem;
             color: #5a6a7e;
-            line-height: 1.75;
+            line-height: 1.72;
             letter-spacing: -0.01em;
         }
 
-        /* ━━━ 메트릭 카드 (에듀넷 수치 강조 스타일) ━━━ */
+        /* ── 메트릭 카드 ── */
         .metric-card {
             background: #ffffff;
             border: 1px solid #dde5f0;
-            border-radius: 12px;
-            padding: 1.25rem 1.3rem 1.1rem 1.3rem;
-            min-height: 118px;
+            border-radius: 14px;
+            padding: 1.2rem 1.25rem 1.05rem 1.25rem;
+            min-height: 116px;
             box-shadow: 0 2px 10px rgba(0,100,200,0.05);
-            transition: box-shadow 0.2s, transform 0.15s;
+            transition: box-shadow .2s, transform .15s;
             position: relative;
             overflow: hidden;
         }
@@ -360,22 +366,22 @@ def inject_style() -> None:
             bottom: 0; left: 0; right: 0;
             height: 3px;
             background: linear-gradient(90deg, #0064c8, #00a0e9);
-            border-radius: 0 0 12px 12px;
+            border-radius: 0 0 14px 14px;
         }
         .metric-card:hover {
-            box-shadow: 0 6px 22px rgba(0,100,200,0.12);
+            box-shadow: 0 7px 24px rgba(0,100,200,0.13);
             transform: translateY(-2px);
         }
         .metric-label {
-            font-size: 0.72rem;
+            font-size: 0.71rem;
             font-weight: 700;
             color: #8696a8;
-            margin-bottom: 0.52rem;
-            letter-spacing: 0.04em;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.05em;
             text-transform: uppercase;
         }
         .metric-value {
-            font-size: 1.82rem;
+            font-size: 1.78rem;
             font-weight: 900;
             color: #0064c8;
             line-height: 1.06;
@@ -383,40 +389,42 @@ def inject_style() -> None:
             font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
         }
         .metric-sub {
-            font-size: 0.75rem;
+            font-size: 0.74rem;
             color: #8696a8;
-            margin-top: 0.48rem;
+            margin-top: 0.46rem;
             line-height: 1.5;
         }
 
-        /* ━━━ 학교 카드 ━━━ */
+        /* ── 학교 카드 ── */
         .school-card {
             background: #ffffff;
             border: 1px solid #dde5f0;
-            border-radius: 12px;
-            padding: 1.25rem 1.2rem 1.15rem;
-            min-height: 208px;
+            border-radius: 14px;
+            padding: 1.2rem 1.15rem 1.1rem;
+            min-height: 210px;
             box-shadow: 0 2px 8px rgba(0,100,200,0.05);
-            transition: box-shadow 0.22s, transform 0.15s;
+            transition: box-shadow .2s, transform .15s, border-color .15s;
         }
         .school-card:hover {
-            box-shadow: 0 10px 30px rgba(0,100,200,0.13);
+            box-shadow: 0 10px 32px rgba(0,100,200,0.14);
             transform: translateY(-3px);
             border-color: #aac8e8;
         }
         .school-rank {
-            display: inline-block;
-            font-size: 0.68rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px; height: 28px;
+            font-size: 0.78rem;
             font-weight: 800;
             color: #ffffff;
             background: linear-gradient(135deg, #0064c8, #00a0e9);
-            border-radius: 4px;
-            padding: 0.2rem 0.55rem;
+            border-radius: 8px;
             margin-bottom: 0.55rem;
-            letter-spacing: 0.06em;
+            letter-spacing: 0;
         }
         .school-name {
-            font-size: 1.05rem;
+            font-size: 1.02rem;
             font-weight: 800;
             color: #0d2d52;
             line-height: 1.35;
@@ -425,60 +433,60 @@ def inject_style() -> None:
             font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
         }
         .school-meta {
-            font-size: 0.82rem;
+            font-size: 0.81rem;
             color: #5a6a7e;
-            margin-bottom: 0.6rem;
+            margin-bottom: 0.58rem;
             line-height: 1.72;
         }
         .school-reason {
-            font-size: 0.82rem;
+            font-size: 0.81rem;
             color: #2c4060;
             line-height: 1.72;
-            padding-top: 0.58rem;
+            padding-top: 0.56rem;
             border-top: 1px solid #edf2f9;
         }
 
-        /* ━━━ 요약 박스 ━━━ */
+        /* ── 요약 박스 ── */
         .summary-box {
             background: #ffffff;
             border: 1px solid #dde5f0;
-            border-radius: 12px;
-            padding: 1.25rem 1.3rem 1.1rem;
-            min-height: 208px;
+            border-radius: 14px;
+            padding: 1.2rem 1.3rem 1.05rem;
+            min-height: 210px;
             box-shadow: 0 2px 8px rgba(0,100,200,0.05);
         }
         .summary-title {
-            font-size: 0.92rem;
+            font-size: 0.9rem;
             font-weight: 800;
             color: #0064c8;
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.6rem;
+            margin-bottom: 0.72rem;
+            padding-bottom: 0.58rem;
             border-bottom: 1.5px solid #ddeeff;
             display: flex;
             align-items: center;
             gap: 0.4rem;
         }
-        .summary-title::before { content: "📋"; font-size: 0.88rem; }
+        .summary-title::before { content: "📋"; font-size: 0.85rem; }
         .summary-list {
             font-size: 0.86rem;
             color: #2c4060;
-            line-height: 2.0;
+            line-height: 1.95;
         }
         .summary-list ul { margin: 0; padding: 0; list-style: none; }
         .summary-list li {
-            padding: 0.18rem 0;
+            padding: 0.16rem 0;
             border-bottom: 1px solid #f0f5fb;
         }
         .summary-list li:last-child { border-bottom: none; }
 
-        /* ━━━ 알림 노트 ━━━ */
+        /* ── 알림 노트 ── */
         .good-note {
             background: #edf6ff;
             color: #0d4c8a;
             border: 1px solid #b8d8f8;
             border-left: 4px solid #0064c8;
-            border-radius: 8px;
-            padding: 0.85rem 1.05rem;
+            border-radius: 9px;
+            padding: 0.82rem 1.05rem;
             font-size: 0.86rem;
             line-height: 1.7;
             margin-top: 0.65rem;
@@ -488,14 +496,14 @@ def inject_style() -> None:
             color: #7c4a00;
             border: 1px solid #ffd89c;
             border-left: 4px solid #ff6b00;
-            border-radius: 8px;
-            padding: 0.85rem 1.05rem;
+            border-radius: 9px;
+            padding: 0.82rem 1.05rem;
             font-size: 0.86rem;
             line-height: 1.7;
             margin-top: 0.65rem;
         }
 
-        /* ━━━ 로직 박스 ━━━ */
+        /* ── 로직 박스 ── */
         .logic-box {
             background: #ffffff;
             border: 1px solid #dde5f0;
@@ -505,10 +513,10 @@ def inject_style() -> None:
             box-shadow: 0 2px 8px rgba(0,100,200,0.04);
         }
         .logic-title {
-            font-size: 0.92rem;
+            font-size: 0.9rem;
             font-weight: 700;
             color: #0064c8;
-            margin-bottom: 0.38rem;
+            margin-bottom: 0.36rem;
         }
         .logic-desc {
             font-size: 0.86rem;
@@ -516,33 +524,33 @@ def inject_style() -> None:
             line-height: 1.7;
         }
 
-        /* ━━━ 보조 텍스트 ━━━ */
+        /* ── 보조 텍스트 ── */
         .footer-note, .small-help {
-            font-size: 0.8rem;
+            font-size: 0.79rem;
             color: #8696a8;
-            line-height: 1.6;
+            line-height: 1.62;
         }
 
-        /* ━━━ select / slider ━━━ */
+        /* ── Select / Slider ── */
         div[data-baseweb="select"] > div {
             border-color: #dde5f0 !important;
             border-radius: 8px !important;
             box-shadow: none !important;
             font-size: 0.9rem !important;
+            transition: border-color .15s !important;
         }
         div[data-baseweb="select"] > div:focus-within {
             border-color: #0064c8 !important;
             box-shadow: 0 0 0 3px rgba(0,100,200,0.1) !important;
         }
 
-        /* ━━━ 데이터프레임 ━━━ */
+        /* ── 데이터프레임 ── */
         .stDataFrame, div[data-testid="stTable"] {
             background: #ffffff;
             border-radius: 10px;
             overflow: hidden;
             border: 1px solid #dde5f0;
         }
-        /* 테이블 헤더 */
         .stDataFrame thead th {
             background: #f0f6ff !important;
             color: #0064c8 !important;
@@ -550,39 +558,39 @@ def inject_style() -> None:
             font-size: 0.82rem !important;
         }
 
-        /* ━━━ 학교 아이덴티티 카드 ━━━ */
+        /* ── 학교 아이덴티티 카드 ── */
         .school-identity-card {
-            background: linear-gradient(135deg, #004ea2 0%, #0064c8 60%, #0096d6 100%);
+            background: linear-gradient(135deg, #004ea2 0%, #0064c8 55%, #0096d6 100%);
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             padding: 1.15rem 1.3rem;
             min-height: 112px;
-            box-shadow: 0 6px 20px rgba(0,100,200,0.22);
+            box-shadow: 0 6px 22px rgba(0,100,200,0.22);
         }
         .school-identity-label {
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             font-weight: 700;
-            color: rgba(255,255,255,0.65);
-            margin-bottom: 0.3rem;
-            letter-spacing: 0.06em;
+            color: rgba(255,255,255,0.62);
+            margin-bottom: 0.28rem;
+            letter-spacing: 0.07em;
             text-transform: uppercase;
         }
         .school-identity-name {
-            font-size: 1.45rem;
+            font-size: 1.42rem;
             font-weight: 900;
             color: #ffffff;
             line-height: 1.2;
             letter-spacing: -0.035em;
-            margin-bottom: 0.22rem;
+            margin-bottom: 0.2rem;
             font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
         }
         .school-identity-meta {
             font-size: 0.82rem;
-            color: rgba(255,255,255,0.78);
+            color: rgba(255,255,255,0.76);
             line-height: 1.5;
         }
 
-        /* ━━━ Streamlit 라벨 ━━━ */
+        /* ── Streamlit 기본 요소 ── */
         .stSelectbox label, .stSlider label, .stNumberInput label,
         div[data-testid="stMarkdownContainer"] p {
             font-size: 0.82rem !important;
@@ -592,50 +600,20 @@ def inject_style() -> None:
             letter-spacing: -0.01em !important;
         }
         div[data-testid="stAlert"] {
-            border-radius: 8px !important;
+            border-radius: 9px !important;
             font-size: 0.875rem !important;
         }
 
-        /* ━━━ 스크롤바 ━━━ */
+        /* ── 스크롤바 ── */
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: #edf2f9; border-radius: 3px; }
         ::-webkit-scrollbar-thumb { background: #9cc0e8; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #5599d0; }
 
-        /* ━━━ Streamlit 컬럼 간격 보정 ━━━ */
+        /* ── 컬럼 간격 ── */
         div[data-testid="stHorizontalBlock"] {
-            gap: 1rem !important;
-            row-gap: 1rem !important;
-        }
-        div[data-testid="column"] > div > div > div {
-            gap: 0.9rem;
-        }
-        /* 각 페이지 구성 요소 사이 위아래 여백 */
-        div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] {
-            gap: 0.75rem;
-        }
-
-        /* ━━━ Streamlit 버튼 내부 p/span 태그 글씨 크기 강제 적용 ━━━
-           Streamlit이 button 안에 <p> 태그를 렌더링하여 font-size를 덮어씀.
-           이를 방지하기 위해 모든 자식 요소에 명시적으로 적용.         */
-        div[data-testid="stButton"] button *,
-        div[data-testid="stButton"] button p,
-        div[data-testid="stButton"] button span,
-        div[data-testid="stButton"] button div {
-            font-size: 0.97rem !important;
-            font-weight: 700 !important;
-            font-family: 'Pretendard', 'Noto Sans KR', sans-serif !important;
-            letter-spacing: -0.02em !important;
-            line-height: 1.3 !important;
-            color: inherit !important;
-        }
-        /* 서브탭 영역 — 배경박스 강조 */
-        .sub-tab-host {
-            background: #f4f8fd;
-            border: 1px solid #d8e8f5;
-            border-radius: 12px;
-            padding: 0.4rem 0.5rem;
-            margin-bottom: 1rem;
+            gap: 0.95rem !important;
+            row-gap: 0.95rem !important;
         }
         </style>
         """,
@@ -1089,11 +1067,11 @@ def prepare_df(df: pd.DataFrame) -> pd.DataFrame:
 def init_state() -> None:
     defaults = {
         "page": "결과 한눈에 보기",
-        "sub_result": "개요",
+        "sub_result": "📈 종합 요약",
         "sub_settings": "📋 기본 설정",
-        "sub_eval": "계획서 요약",
-        "sub_report": "점수 설명",
-        "sub_quality": "신뢰도 요약",
+        "sub_eval": "📝 계획서 요약",
+        "sub_report": "🏅 점수 풀이",
+        "sub_quality": "🧾 점검 요약",
         "office": "전체",
         "school_level_pick": "초등",
         "scenario": "기본형",
@@ -1302,25 +1280,46 @@ def school_identity_card(name: str, meta: str) -> None:
 
 def school_card(rank: int, row: pd.Series) -> None:
     reason = row.get("reason_v2", "")
-    reason = reason if reason.strip() else '학생규모, 신청 여부, 긴급성, 재정·지역·시설 보정을 종합 반영한 결과입니다.'
-    if len(reason) > 52:
-        reason = reason[:52].rstrip() + '…'
-    rank_colors = {1: "#0064c8", 2: "#00a0e9", 3: "#48cae4"}
-    rank_bg = rank_colors.get(rank, "#6c757d")
+    reason = reason if str(reason).strip() and reason != "nan" else "학생규모·신청 여부·긴급성·재정·지역·시설 보정을 종합해 산출한 결과입니다."
+    if len(reason) > 58:
+        reason = reason[:58].rstrip() + "…"
+    rank_styles = {
+        1: ("linear-gradient(135deg,#0053a8,#0064c8)", "🥇"),
+        2: ("linear-gradient(135deg,#0080c8,#00a0e9)", "🥈"),
+        3: ("linear-gradient(135deg,#0096d6,#48cae4)", "🥉"),
+    }
+    rank_bg, rank_emoji = rank_styles.get(rank, ("#6c757d", f"#{rank}"))
+    score_val = row.get("final_allocation_score", row.get("우선 검토 점수", 0))
+    try:
+        score_val = float(score_val or 0)
+    except Exception:
+        score_val = 0.0
+    urgent = int(row.get("urgent_flag", 0) or 0)
+    urgent_badge = "<span style='font-size:0.7rem; background:#fff3cd; color:#856404; border-radius:4px; padding:0.1rem 0.38rem; font-weight:700; margin-left:0.35rem;'>⚡긴급</span>" if urgent else ""
     st.markdown(
         f"""
         <div class='school-card'>
-            <div style='display:flex; align-items:center; gap:0.5rem; margin-bottom:0.45rem;'>
+            <div style='display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;'>
                 <span style='display:inline-flex; align-items:center; justify-content:center;
-                    width:28px; height:28px; border-radius:50%;
+                    width:30px; height:30px; border-radius:9px;
                     background:{rank_bg}; color:#fff;
-                    font-size:0.75rem; font-weight:800; flex-shrink:0;'>{rank}</span>
-                <span class='school-name' style='margin:0;'>{row.get('school_display', row.get('school_name', '미상학교'))}</span>
+                    font-size:0.8rem; font-weight:900; flex-shrink:0;
+                    box-shadow:0 2px 6px rgba(0,80,180,0.22);'>{rank}</span>
+                <span class='school-name' style='margin:0;'>{row.get('school_display', row.get('school_name', '미상'))}</span>
+                {urgent_badge}
             </div>
             <div class='school-meta'>
-                {row.get('school_level_group', '')} · {row.get('region_office', '')} · {row.get('first_choice_area_norm', '')}<br>
-                점수 <strong style='color:#0064c8;'>{row.get('final_allocation_score', row.get('우선 검토 점수', 0)):.1f}</strong>
-                &nbsp;·&nbsp; 권장예산 <strong style='color:#0064c8;'>{fmt_money(row.get('recommended_budget', 0))}</strong>
+                {row.get('school_level_group', '')} &nbsp;·&nbsp; {row.get('region_office', '')} &nbsp;·&nbsp; {row.get('first_choice_area_norm', '')}
+            </div>
+            <div style='display:flex; gap:0.6rem; margin-bottom:0.55rem;'>
+                <span style='background:#edf4ff; color:#0064c8; border-radius:6px;
+                    padding:0.22rem 0.58rem; font-size:0.8rem; font-weight:700;'>
+                    점수&nbsp;{score_val:.1f}
+                </span>
+                <span style='background:#e8f5ee; color:#166534; border-radius:6px;
+                    padding:0.22rem 0.58rem; font-size:0.8rem; font-weight:700;'>
+                    권장예산&nbsp;{fmt_money(row.get('recommended_budget', 0))}
+                </span>
             </div>
             <div class='school-reason'>{reason}</div>
         </div>
@@ -1685,13 +1684,13 @@ def render_global_filters(df: pd.DataFrame) -> None:
             apply_scenario_preset(scenario)
             st.rerun()
     with c4:
-        st.markdown("<div class='small-help' style='margin-top:0.3rem;'>🎓 학교급 선택 시 해당 기준으로 재계산됩니다.</div>", unsafe_allow_html=True)
-        st.markdown("<div class='footer-note' style='margin-top:0.3rem;'>ℹ️ 정책 검토 지원용 시연 화면입니다.</div>", unsafe_allow_html=True)
+        st.markdown("<div class='small-help' style='margin-top:0.3rem;'>🎓 학교급을 선택하면 해당 기준으로 다시 계산됩니다.</div>", unsafe_allow_html=True)
+        st.markdown("<div class='footer-note' style='margin-top:0.3rem;'>ℹ️ 정책 검토 지원을 위한 시연용 화면입니다.</div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
     level_pick = st.session_state.get("school_level_pick", "초등")
     desc = level_focus_text(level_pick)
-    st.markdown(f"<div class='engine-panel'><div class='engine-title'>⚙️ 현재 계산 엔진</div><div class='engine-desc'><b>{level_caption(level_pick)}</b>&nbsp;&nbsp;{desc}</div></div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='engine-panel'><div class='engine-title'>⚙️ 현재 계산 방식</div><div class='engine-desc'><b>{level_caption(level_pick)}</b>&nbsp;&nbsp;{desc}</div></div>", unsafe_allow_html=True)
 
 
 
@@ -1747,7 +1746,7 @@ def page_result_overview(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_
                 f"예산 재검토 필요 학교: {ai_review}개교",
             ])
             st.markdown("<div style='height:0.55rem;'></div>", unsafe_allow_html=True)
-            notice("학교급을 바꾸면 해당 학교급 기준으로 다시 계산됩니다.")
+            notice("학교급을 바꾸면 해당 기준으로 결과가 새로 계산됩니다.")
 
     elif "분포 현황" in sub:
         section_header("분포 현황", "선정 결과의 구성을 확인합니다.", f"{level_caption} 기준 분포")
@@ -1772,7 +1771,7 @@ def page_result_overview(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_
                 .reset_index(name="학교 수")
             ) if not selected_df.empty else pd.DataFrame(columns=["취약 신호 수", "학교 수"])
             bar_chart(signal_df, "취약 신호 수", "학교 수", "취약 신호별 학교 수", horizontal=False)
-        notice("전체 보기는 학교급별 합산, 개별 보기는 해당 학교급 안에서만 비교합니다.")
+        notice("전체 보기는 초·중·고를 각각 계산한 뒤 합산합니다. 학교급을 선택하면 해당 학교급 안에서만 비교합니다.")
 
     else:
         section_header("점수 비교", "현재 설정이 반영하는 학교 유형을 확인합니다.", f"{level_caption} · 수요·계획서·예산 적정성 평균 점수 비교")
@@ -1797,7 +1796,7 @@ def page_result_overview(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_
                     comp["평균"].tolist(),
                     "점수 구조 한눈에 보기"
                 )
-            notice("수요·계획서·예산 적정성 세 가지 점수를 함께 반영해 순위를 정합니다.")
+            notice("수요·계획서·예산 적정성 3가지 점수를 종합해 우선순위를 정합니다.")
 
 
 def settings_persistence_panel() -> None:
@@ -2233,14 +2232,14 @@ def page_school_report(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_df
     school = st.selectbox('학교 리포트 대상', schools, key='report_school')
     row = base_df[base_df['school_display'] == school].iloc[0]
     status = '선정' if row['__rowid'] in selected_df['__rowid'].tolist() else '보류'
-    section_header("학교 리포트", "개별 학교의 점수·예산·후속 행동을 확인합니다.", "선정·보류 사유 · 권장예산 근거 · 다음 행동")
+    section_header("학교 상세 보기", "이 학교의 점수·예산·다음 행동을 확인합니다.", "선정·보류 사유 · 권장예산 근거 · 다음 할 일")
     m1, m2, m3, m4, m5 = st.columns([1.45, 0.9, 1.0, 1.0, 1.0])
     with m1:
         school_identity_card(row["school_name"], f"{row['region_office']} · {row['school_level_group']} · {row.get('first_choice_area_norm', '')}")
     with m2:
         metric_card("상태", status)
     with m3:
-        metric_card("최종배분점수", f"{row.get('final_allocation_score', row['우선 검토 점수']):.1f}")
+        metric_card("최종 배분 점수", f"{float(row.get('final_allocation_score', row.get('우선 검토 점수', 0)) or 0):.1f}점")
     with m4:
         metric_card("권장예산", fmt_money(row["recommended_budget"]))
     with m5:
@@ -2270,7 +2269,7 @@ def page_school_report(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_df
             "점수": [row.get("size_pct_score", 0), row.get("urgent_pct_score", 0), row.get("finance_pct_score", 0), row.get("facility_pct_score", 0), row.get("region_pct_score", 0)],
         })
         bar_chart(detail, "세부 항목", "점수", "수요 점수 세부 내역", horizontal=True)
-        notice("이 점수는 우선 검토 순서를 제안하는 참고 자료이며, 최종 결정은 담당자가 내립니다.")
+        notice("점수는 우선 검토 순서를 제안하는 참고값입니다. 최종 지원 여부는 담당자가 결정합니다.")
 
     elif "예산 풀이" in sub:
         explain = pd.DataFrame({
@@ -2291,7 +2290,7 @@ def page_school_report(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_df
             "점수": [row.get("budget_total_fit_score", 0), row.get("budget_item_fit_score", 0), row.get("budget_case_fit_score", 0), row.get("budget_fit_score", 0)],
         })
         bar_chart(fit, "항목", "점수", "예산 설명", horizontal=True)
-        notice("기준단가 × 보정계수 구조로 권장예산 근거를 투명하게 제공합니다.")
+        notice("권장예산은 기준단가에 학생규모·취약도·운영난도 계수를 곱해 산출합니다.")
 
     elif "종합 의견" in sub:
         verdict = "적정" if abs(row.get("budget_gap_ratio", 0)) <= 0.15 else ("다소 높음" if row.get("budget_gap_ratio", 0) > 0 else "다소 낮음")
@@ -2300,7 +2299,7 @@ def page_school_report(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_df
             f"가장 큰 강점은 {row.get('first_choice_area_norm', '')} 영역과 {row.get('focus_area_top1', '')} 중심 정책 우선도 일치입니다.",
             f"예산 적정성 판정은 '{verdict}'이며, 신청 예산과 권장 예산 차이는 {row.get('budget_gap_ratio', 0) * 100:.1f}%입니다.",
         ])
-        notice("이 요약은 검토를 돕는 참고 자료이며, 최종 해석은 담당자가 수행합니다.")
+        notice("이 내용은 검토를 돕는 참고 자료입니다. 최종 판단은 담당자가 직접 내려주세요.")
 
     else:
         actions = []
@@ -2740,7 +2739,7 @@ def main() -> None:
                 <div class='title-main-wrap'>
                     <div class='title-kicker'>🏫 교육 공공데이터 기반 학교지원 의사결정 서비스</div>
                     <div class='main-title'>ULTRA 학교지원<br>우선순위 추천 서비스</div>
-                    <div class='sub-title'>학교급별 수요·계획서·예산 적정성을 함께 검토해,<br>어떤 학교를 왜 먼저 지원해야 하는지 설명형으로 보여줍니다.</div>
+                    <div class='sub-title'>학교별 수요·계획서·예산 적정성을 함께 살펴보고,<br>어떤 학교를 왜 먼저 지원할지 근거와 함께 안내합니다.</div>
                     <div class='title-meta'>
                         <span class='title-meta-item'>📐 학교급별 분리 계산</span>
                         <span class='title-meta-item'>💰 권장예산 자동 계산</span>
@@ -2777,7 +2776,7 @@ def main() -> None:
 
     raw = load_data()
     if raw.empty:
-        st.warning("school_master_final_v2.csv 파일을 찾지 못했습니다. 이 코드는 스크립트와 같은 폴더 또는 작업 폴더에 CSV가 있을 때 바로 실행됩니다.")
+        st.warning("데이터 파일(school_master_final_v2.csv)을 찾지 못했습니다. 앱 파일과 같은 폴더에 CSV가 있어야 합니다. 아래에 샘플 데이터로 미리 보기를 표시합니다.")
         demo = pd.DataFrame({
             "school_name": ["서울대도초등학교", "공주신월초등학교", "천안아름초등학교", "진영여자고등학교", "공주여자중학교"],
             "region_office": ["서울", "충남", "충남", "경남", "충남"],
