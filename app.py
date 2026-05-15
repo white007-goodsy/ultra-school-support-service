@@ -1055,7 +1055,7 @@ def prepare_df(df: pd.DataFrame) -> pd.DataFrame:
     out["building_area_total"] = pd.to_numeric(safe_col(out, ["building_area_total"], np.nan), errors="coerce")
     out["land_area_total"] = pd.to_numeric(safe_col(out, ["land_area_total"], np.nan), errors="coerce")
     out["first_choice_area"] = safe_col(out, ["first_choice_area", "1순위 영역"], "학업지원").astype(str)
-    out["reason_v2"] = safe_col(out, ["reason_v2", "추천 사유"], "").astype(str)
+    out["reason_v2"] = safe_col(out, ["reason_v2", "추천 사유"], "").astype(str).str.replace(r"[\n\r\t]", " ", regex=True).str.strip()
     out["hold_reason"] = safe_col(out, ["hold_reason", "보류 사유"], "").astype(str)
 
     area_alias = {
@@ -1083,9 +1083,10 @@ def prepare_df(df: pd.DataFrame) -> pd.DataFrame:
 
     out["__rowid"] = np.arange(len(out))
     dup_mask = out.duplicated(subset=["school_name"], keep=False)
-    out["school_display"] = out["school_name"]
+    # school_display: 중복 학교명에 지역·학교급 괄호 추가 + 개행·특수문자 제거
+    out["school_display"] = out["school_name"].astype(str).str.replace(r"[\n\r\t]", " ", regex=True).str.strip()
     out.loc[dup_mask, "school_display"] = out.loc[dup_mask].apply(
-        lambda r: f"{r['school_name']} ({r['region_office']}/{r['school_level_group']})", axis=1
+        lambda r: f"{str(r['school_name']).strip()} ({str(r['region_office']).strip()}/{str(r['school_level_group']).strip()})", axis=1
     )
 
     return out
@@ -1097,11 +1098,11 @@ def prepare_df(df: pd.DataFrame) -> pd.DataFrame:
 def init_state() -> None:
     defaults = {
         "page": "결과 한눈에 보기",
-        "sub_result": "개요",
+        "sub_result": "📈 종합 요약",
         "sub_settings": "📋 기본 설정",
-        "sub_eval": "계획서 요약",
-        "sub_report": "점수 설명",
-        "sub_quality": "신뢰도 요약",
+        "sub_eval": "📝 계획서 요약",
+        "sub_report": "🏅 점수 풀이",
+        "sub_quality": "🧾 점검 요약",
         "office": "전체",
         "school_level_pick": "초등",
         "scenario": "기본형",
@@ -1761,21 +1762,18 @@ def page_result_overview(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_
 
         st.markdown("<div style='height:0.8rem;'></div>", unsafe_allow_html=True)
 
-        left, right = st.columns([1.72, 1.0], gap="medium")
-        with left:
-            top3 = selected_df.head(3)
-            card_cols = st.columns(3, gap="medium")
-            for idx, (_, row) in enumerate(top3.iterrows(), start=1):
-                with card_cols[idx - 1]:
-                    school_card(idx, row)
-            st.markdown("<div style='height:0.6rem;'></div>", unsafe_allow_html=True)
-            g1, g2 = st.columns(2)
-            with g1:
-                gauge_chart(round(usage, 1), "예산 사용률")
-            with g2:
-                gauge_chart(round(request_ratio, 1), "신청학교 반영률")
+        # ── 학교 카드 3개 (중첩 컬럼 금지 → 최상위 레벨에서 직접 배치) ──
+        card_cols = st.columns(3, gap="medium")
+        top3 = selected_df.head(3)
+        for idx, (_, row) in enumerate(top3.iterrows(), start=1):
+            with card_cols[idx - 1]:
+                school_card(idx, row)
 
-        with right:
+        st.markdown("<div style='height:0.75rem;'></div>", unsafe_allow_html=True)
+
+        # ── 요약 박스 + 게이지 ──
+        sum_col, g1_col, g2_col = st.columns([2.2, 1.0, 1.0], gap="medium")
+        with sum_col:
             top_area = selected_df["first_choice_area_norm"].mode().iat[0] if not selected_df.empty else "없음"
             urgent_n = int(selected_df["urgent_flag"].sum()) if not selected_df.empty else 0
             ai_review = int((selected_df["budget_gap_ratio"].abs() > 0.20).sum()) if not selected_df.empty and "budget_gap_ratio" in selected_df.columns else 0
@@ -1785,8 +1783,12 @@ def page_result_overview(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_
                 f"긴급 학교 수: {urgent_n}개교",
                 f"예산 재검토 필요 학교: {ai_review}개교",
             ])
-            st.markdown("<div style='height:0.55rem;'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height:0.45rem;'></div>", unsafe_allow_html=True)
             notice("학교급을 바꾸면 해당 학교급 기준으로 다시 계산됩니다.")
+        with g1_col:
+            gauge_chart(round(usage, 1), "예산 사용률")
+        with g2_col:
+            gauge_chart(round(request_ratio, 1), "신청학교 반영률")
 
     elif "분포 현황" in sub:
         section_header("분포 현황", "선정 결과의 구성을 확인합니다.", f"{level_caption} 기준 분포")
