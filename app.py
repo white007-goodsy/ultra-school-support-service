@@ -1311,19 +1311,17 @@ def school_identity_card(name: str, meta: str) -> None:
 
 
 def school_card(rank: int, row: pd.Series) -> None:
+    """HTML을 작은 조각으로 나눠 렌더링 — 하나의 큰 f-string 블록 금지."""
     raw_reason = str(row.get("reason_v2", "") or "")
-    reason = raw_reason.strip() if raw_reason.strip() else "학생규모·신청 여부·긴급성·재정·지역·시설 보정을 종합해 산출했습니다."
-    if len(reason) > 60:
-        reason = reason[:60].rstrip() + "…"
+    reason = raw_reason.strip() or "학생규모·신청 여부·긴급성·재정·지역·시설 보정을 종합해 산출했습니다."
+    if len(reason) > 72:
+        reason = reason[:72].rstrip() + "…"
 
-    rank_styles = {1: "#0064c8", 2: "#0096d6", 3: "#48cae4"}
-    rank_bg = rank_styles.get(rank, "#6c757d")
-
-    school_nm  = esc(row.get("school_display", row.get("school_name", "미상학교")))
-    level_txt  = esc(row.get("school_level_group", ""))
-    region_txt = esc(row.get("region_office", ""))
-    area_txt   = esc(row.get("first_choice_area_norm", ""))
-    reason_txt = esc(reason)
+    school_nm  = str(row.get("school_display", row.get("school_name", "미상학교")) or "").strip()
+    level_txt  = str(row.get("school_level_group", "") or "")
+    region_txt = str(row.get("region_office", "") or "")
+    area_txt   = str(row.get("first_choice_area_norm", "") or "")
+    budget_str = fmt_money(row.get("recommended_budget", 0))
 
     try:
         score_val = float(row.get("final_allocation_score") or row.get("우선 검토 점수") or 0)
@@ -1331,40 +1329,53 @@ def school_card(rank: int, row: pd.Series) -> None:
         score_val = 0.0
 
     urgent = int(row.get("urgent_flag", 0) or 0)
-    urgent_html = (
-        "<span style='font-size:0.7rem; background:#fff3cd; color:#856404; "
-        "border-radius:4px; padding:0.1rem 0.4rem; font-weight:700; margin-left:0.35rem;'>⚡ 긴급</span>"
+    rank_colors = {1: "#0064c8", 2: "#0096d6", 3: "#48cae4"}
+    rank_bg = rank_colors.get(rank, "#6c757d")
+
+    # ── 순위 뱃지 + 학교명 ──
+    badge = (
+        f"<span style='display:inline-flex;align-items:center;justify-content:center;"
+        f"width:26px;height:26px;border-radius:8px;background:{rank_bg};"
+        f"color:#fff;font-size:0.78rem;font-weight:900;margin-right:0.4rem;"
+        f"box-shadow:0 2px 5px rgba(0,80,180,0.22);flex-shrink:0;'>{rank}</span>"
+    )
+    urgent_span = (
+        "<span style='font-size:0.68rem;background:#fff3cd;color:#856404;"
+        "border-radius:4px;padding:0.08rem 0.38rem;font-weight:700;"
+        "margin-left:0.35rem;'>⚡ 긴급</span>"
         if urgent else ""
     )
-
     st.markdown(
-        f"""
-        <div class='school-card'>
-            <div style='display:flex; align-items:center; gap:0.5rem; margin-bottom:0.52rem;'>
-                <span style='display:inline-flex; align-items:center; justify-content:center;
-                    width:30px; height:30px; border-radius:9px;
-                    background:{rank_bg}; color:#fff;
-                    font-size:0.82rem; font-weight:900; flex-shrink:0;
-                    box-shadow:0 2px 6px rgba(0,80,180,0.22);'>{rank}</span>
-                <span class='school-name' style='margin:0;'>{school_nm}</span>
-                {urgent_html}
-            </div>
-            <div class='school-meta'>
-                {level_txt} &nbsp;·&nbsp; {region_txt} &nbsp;·&nbsp; {area_txt}
-            </div>
-            <div style='display:flex; gap:0.5rem; margin-bottom:0.55rem; flex-wrap:wrap;'>
-                <span style='background:#edf4ff; color:#0064c8; border-radius:6px;
-                    padding:0.2rem 0.55rem; font-size:0.8rem; font-weight:700;'>
-                    점수 {score_val:.1f}
-                </span>
-                <span style='background:#e8f5ee; color:#166534; border-radius:6px;
-                    padding:0.2rem 0.55rem; font-size:0.8rem; font-weight:700;'>
-                    권장예산 {esc(fmt_money(row.get("recommended_budget", 0)))}
-                </span>
-            </div>
-            <div class='school-reason'>{reason_txt}</div>
-        </div>
-        """,
+        f"<div style='display:flex;align-items:center;margin-bottom:0.44rem;'>"
+        f"{badge}"
+        f"<span style='font-size:0.97rem;font-weight:800;color:#0d2d52;"
+        f"letter-spacing:-0.02em;font-family:Pretendard,sans-serif;'>{esc(school_nm)}</span>"
+        f"{urgent_span}</div>",
+        unsafe_allow_html=True,
+    )
+
+    # ── 학교급 · 지역 · 영역 ──
+    st.markdown(
+        f"<div style='font-size:0.8rem;color:#5a6a7e;margin-bottom:0.46rem;line-height:1.5;'>"
+        f"{esc(level_txt)}&nbsp;·&nbsp;{esc(region_txt)}&nbsp;·&nbsp;{esc(area_txt)}</div>",
+        unsafe_allow_html=True,
+    )
+
+    # ── 점수 + 권장예산 ──
+    st.markdown(
+        f"<div style='display:flex;gap:0.42rem;margin-bottom:0.5rem;flex-wrap:wrap;'>"
+        f"<span style='background:#edf4ff;color:#0064c8;border-radius:6px;"
+        f"padding:0.2rem 0.52rem;font-size:0.79rem;font-weight:700;'>점수 {score_val:.1f}</span>"
+        f"<span style='background:#e8f5ee;color:#166534;border-radius:6px;"
+        f"padding:0.2rem 0.52rem;font-size:0.79rem;font-weight:700;'>권장예산 {esc(budget_str)}</span>"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
+    # ── 선정 사유 ──
+    st.markdown(
+        f"<div style='font-size:0.81rem;color:#2c4060;line-height:1.68;"
+        f"padding-top:0.48rem;border-top:1px solid #edf2f9;'>{esc(reason)}</div>",
         unsafe_allow_html=True,
     )
 
@@ -1762,12 +1773,20 @@ def page_result_overview(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_
 
         st.markdown("<div style='height:0.8rem;'></div>", unsafe_allow_html=True)
 
-        # ── 학교 카드 3개 (중첩 컬럼 금지 → 최상위 레벨에서 직접 배치) ──
+        # ── 학교 카드 3개 ──
+        # 각 컬럼에 카드 테두리 div를 먼저 열고, school_card 호출 후 닫는다
+        CARD_OPEN  = ("<div style='border:1.5px solid #dde5f0;border-radius:14px;"
+                      "padding:1rem 1.1rem 0.95rem;background:#ffffff;"
+                      "box-shadow:0 2px 10px rgba(0,100,200,0.06);min-height:210px;'>")
+        CARD_CLOSE = "</div>"
+
         card_cols = st.columns(3, gap="medium")
         top3 = selected_df.head(3)
         for idx, (_, row) in enumerate(top3.iterrows(), start=1):
             with card_cols[idx - 1]:
+                st.markdown(CARD_OPEN, unsafe_allow_html=True)
                 school_card(idx, row)
+                st.markdown(CARD_CLOSE, unsafe_allow_html=True)
 
         st.markdown("<div style='height:0.75rem;'></div>", unsafe_allow_html=True)
 
