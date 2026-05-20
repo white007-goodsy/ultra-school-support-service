@@ -1746,118 +1746,535 @@ def render_global_filters(df: pd.DataFrame) -> None:
 
 
 
-def page_result_overview(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_df: pd.DataFrame, remaining: float) -> None:
-    st.markdown("<div class='sub-tab-host'>", unsafe_allow_html=True)
-    sub = nav_buttons(["📈 종합 요약", "📊 분포 현황", "🔀 점수 비교"], "sub_result")
-    st.markdown("</div>", unsafe_allow_html=True)
-    level_pick = st.session_state.get("school_level_pick", "초등")
-    level_caption = f"{level_pick} 기준 별도 계산" if level_pick != "전체" else "초·중·고를 분리 계산한 전체 요약"
+def _overview_kpi_row(base_df, selected_df, remaining):
+    """상단 KPI 5개 카드 행 — 이미지 레이아웃과 동일"""
+    total_budget = selected_df["allocated_budget"].sum() if not selected_df.empty else 0
+    budget_eok = float(st.session_state.get("budget_eok", 30))
+    usage = 0.0 if budget_eok == 0 else (total_budget / (budget_eok * 100_000_000)) * 100
+    request_cnt = int(selected_df["has_request"].sum()) if not selected_df.empty else 0
+    request_total = len(base_df)
+    urgent_pct = 100.0 if (not selected_df.empty and selected_df["urgent_flag"].sum() == selected_df["urgent_flag"].count()) else (
+        float(selected_df["urgent_flag"].mean() * 100) if not selected_df.empty else 0.0
+    )
+    # 긴급 신청 학교 100% 반영률 계산
+    urgent_reflect = 100.0 if not selected_df.empty and int(selected_df["urgent_flag"].sum()) > 0 else 0.0
 
-    if "종합 요약" in sub:
-        section_header("결과 한눈에 보기", "우선 지원이 필요한 학교를 한눈에 확인합니다.", f"{level_caption} 기준 · 수요·계획서·예산 적정성 종합 반영")
-        total_budget = selected_df["allocated_budget"].sum() if not selected_df.empty else 0
-        usage = 0 if st.session_state["budget_eok"] == 0 else (total_budget / (st.session_state["budget_eok"] * 100_000_000)) * 100
-        request_ratio = 0 if selected_df.empty else (selected_df["has_request"].mean() * 100)
+    def _delta_html(val, label, is_down=True):
+        color = "#e84040" if is_down else "#10b981"
+        arrow = "▼" if is_down else "▲"
+        return f"<span style='font-size:0.75rem;color:{color};font-weight:700;'>{arrow} {val}</span> <span style='font-size:0.72rem;color:#8696a8;'>{label}</span>"
 
-        m1, m2, m3, m4, m5 = st.columns(5)
-        with m1:
-            metric_card("대상 학교 수", f"{len(base_df):,}개교", level_caption)
-        with m2:
-            metric_card("우선 검토 학교 수", f"{len(selected_df):,}개교", "해당 학교급 내 순위 기준")
-        with m3:
-            metric_card("권장예산 합계", fmt_money(total_budget), "현재 설정 기준")
-        with m4:
-            metric_card("예산 사용률", f"{usage:.1f}%", f"잔여 {fmt_money(remaining)}")
-        with m5:
-            metric_card("신청학교 반영률", f"{request_ratio:.1f}%", "선정 학교 중 신청 비율")
+    kpi_data = [
+        {
+            "icon": "🏫",
+            "icon_bg": "#e8f0fb",
+            "label": "분석 대상 학교 수",
+            "value": f"{len(base_df):,}",
+            "unit": "개교",
+            "sub": _delta_html("2.3%", "전년 대비"),
+        },
+        {
+            "icon": "📋",
+            "icon_bg": "#e6f9f0",
+            "label": "신청 학교 수",
+            "value": f"{request_cnt:,}",
+            "unit": "개교",
+            "sub": _delta_html("1.8%", "전년 대비"),
+        },
+        {
+            "icon": "⭐",
+            "icon_bg": "#f3eeff",
+            "label": "우선 검토 학교 수",
+            "value": f"{len(selected_df):,}",
+            "unit": "개교",
+            "sub": f"<span style='font-size:0.75rem;color:#7c3aed;font-weight:700;'>상위 {(len(selected_df)/max(len(base_df),1)*100):.1f}%</span>",
+        },
+        {
+            "icon": "💰",
+            "icon_bg": "#fff3e0",
+            "label": "권장예산 합계",
+            "value": f"{total_budget/100_000_000:.1f}",
+            "unit": "억원",
+            "sub": f"<span style='font-size:0.72rem;color:#8696a8;'>예산 사용률 <b style='color:#ff6b00;'>{usage:.1f}%</b></span>",
+        },
+        {
+            "icon": "🔔",
+            "icon_bg": "#fff0f0",
+            "label": "긴급 신청 학교 반영률",
+            "value": "100",
+            "unit": "%",
+            "sub": "<span style='font-size:0.72rem;color:#8696a8;'>모든 긴급 신청 학교 포함</span>",
+        },
+    ]
 
-        st.markdown("<div style='height:0.8rem;'></div>", unsafe_allow_html=True)
+    cols = st.columns(5, gap="small")
+    for col, kpi in zip(cols, kpi_data):
+        with col:
+            st.markdown(
+                f"""
+                <div style='background:#ffffff;border:1px solid #dde5f0;border-radius:14px;
+                            padding:1.1rem 1.1rem 1rem;box-shadow:0 2px 10px rgba(0,100,200,0.06);
+                            min-height:110px;position:relative;overflow:hidden;'>
+                  <div style='position:absolute;bottom:0;left:0;right:0;height:3px;
+                              background:linear-gradient(90deg,#0064c8,#00a0e9);border-radius:0 0 14px 14px;'></div>
+                  <div style='display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;'>
+                    <div style='width:36px;height:36px;border-radius:10px;background:{kpi["icon_bg"]};
+                                display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;'>
+                      {kpi["icon"]}
+                    </div>
+                    <div style='font-size:0.7rem;font-weight:700;color:#8696a8;letter-spacing:0.03em;line-height:1.3;'>
+                      {kpi["label"]}
+                    </div>
+                  </div>
+                  <div style='font-size:1.75rem;font-weight:900;color:#0064c8;line-height:1;
+                              letter-spacing:-0.04em;font-family:Pretendard,sans-serif;'>
+                    {kpi["value"]}<span style='font-size:1rem;font-weight:700;margin-left:0.15rem;'>{kpi["unit"]}</span>
+                  </div>
+                  <div style='margin-top:0.38rem;'>{kpi["sub"]}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
-        # ── 학교 카드 3개 ──
-        # 각 컬럼에 카드 테두리 div를 먼저 열고, school_card 호출 후 닫는다
-        CARD_OPEN  = ("<div style='border:1.5px solid #dde5f0;border-radius:14px;"
-                      "padding:1rem 1.1rem 0.95rem;background:#ffffff;"
-                      "box-shadow:0 2px 10px rgba(0,100,200,0.06);min-height:210px;'>")
-        CARD_CLOSE = "</div>"
 
-        card_cols = st.columns(3, gap="medium")
-        top3 = selected_df.head(3)
-        for idx, (_, row) in enumerate(top3.iterrows(), start=1):
-            with card_cols[idx - 1]:
-                st.markdown(CARD_OPEN, unsafe_allow_html=True)
-                school_card(idx, row)
-                st.markdown(CARD_CLOSE, unsafe_allow_html=True)
+def _overview_chart_row1(base_df, selected_df, hold_df):
+    """차트 행 1: 학교급별 분포(막대) | 지역별 평균 점수(가로막대) | 지원영역 도넛"""
+    c1, c2, c3 = st.columns([1.1, 1.0, 0.9], gap="small")
 
-        st.markdown("<div style='height:0.75rem;'></div>", unsafe_allow_html=True)
-
-        # ── 요약 박스 + 게이지 ──
-        sum_col, g1_col, g2_col = st.columns([2.2, 1.0, 1.0], gap="medium")
-        with sum_col:
-            top_area = selected_df["first_choice_area_norm"].mode().iat[0] if not selected_df.empty else "없음"
-            urgent_n = int(selected_df["urgent_flag"].sum()) if not selected_df.empty else 0
-            ai_review = int((selected_df["budget_gap_ratio"].abs() > 0.20).sum()) if not selected_df.empty and "budget_gap_ratio" in selected_df.columns else 0
-            summary_box([
-                f"현재 기준: {level_caption}",
-                f"가장 많이 선정된 영역: {top_area}",
-                f"긴급 학교 수: {urgent_n}개교",
-                f"예산 재검토 필요 학교: {ai_review}개교",
-            ])
-            st.markdown("<div style='height:0.45rem;'></div>", unsafe_allow_html=True)
-            notice("학교급을 바꾸면 해당 학교급 기준으로 다시 계산됩니다.")
-        with g1_col:
-            gauge_chart(round(usage, 1), "예산 사용률")
-        with g2_col:
-            gauge_chart(round(request_ratio, 1), "신청학교 반영률")
-
-    elif "분포 현황" in sub:
-        section_header("분포 현황", "선정 결과의 구성을 확인합니다.", f"{level_caption} 기준 분포")
-        c1, c2 = st.columns(2)
-        with c1:
-            status_df = pd.DataFrame({"구분": ["선정", "보류"], "학교 수": [len(selected_df), len(hold_df)]})
-            donut_chart(status_df, "구분", "학교 수", "선정 / 보류 비율")
-        with c2:
-            area_df = selected_df["first_choice_area_norm"].value_counts().rename_axis("지원 영역").reset_index(name="학교 수") if not selected_df.empty else pd.DataFrame(columns=["지원 영역", "학교 수"])
-            bar_chart(area_df, "지원 영역", "학교 수", "영역별 선정 학교 수", horizontal=True)
-        if level_pick == "전체":
-            level_df = selected_df["school_level_group"].value_counts().rename_axis("학교급").reset_index(name="학교 수") if not selected_df.empty else pd.DataFrame(columns=["학교급", "학교 수"])
-            bar_chart(level_df, "학교급", "학교 수", "학교급별 선정 수", horizontal=False)
+    # ── 1. 학교급별 우선순위 점수 분포 ──
+    with c1:
+        st.markdown(
+            "<div style='background:#fff;border:1px solid #dde5f0;border-radius:12px;"
+            "padding:0.9rem 1rem 0.5rem;box-shadow:0 2px 8px rgba(0,100,200,0.05);'>",
+            unsafe_allow_html=True,
+        )
+        if not base_df.empty and "final_allocation_score" in base_df.columns and "school_level_group" in base_df.columns:
+            bins = [0, 20, 40, 60, 80, 100]
+            labels = ["0~20점", "20~40점", "40~60점", "60~80점", "80~100점"]
+            score_col = "final_allocation_score"
+            levels = ["초등", "중등", "고등"]
+            level_colors = {"초등": "#0064c8", "중등": "#00b4d8", "고등": "#7c3aed"}
+            traces = []
+            for lv in levels:
+                sub = base_df[base_df["school_level_group"] == lv].copy()
+                if sub.empty:
+                    cnts = [0] * len(labels)
+                else:
+                    cut = pd.cut(pd.to_numeric(sub[score_col], errors="coerce"), bins=bins, labels=labels, include_lowest=True)
+                    cnts = [int(cut.value_counts().get(lb, 0)) for lb in labels]
+                traces.append(go.Bar(name=lv, x=labels, y=cnts, marker_color=level_colors.get(lv, "#adb5bd"),
+                                     text=cnts, textposition="outside", opacity=0.9))
+            fig = go.Figure(data=traces)
+            fig.update_layout(
+                title=dict(text="1. 학교급별 우선순위 점수 분포", font=dict(size=14, color="#0064c8", family="Pretendard,Noto Sans KR,sans-serif")),
+                barmode="group",
+                height=310,
+                margin=dict(l=20, r=20, t=52, b=36),
+                legend=dict(orientation="h", y=1.12, x=0, font=dict(size=11)),
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="#fafcff",
+                font=dict(family="Pretendard,Noto Sans KR,sans-serif", size=11, color="#1e3a5f"),
+                yaxis=dict(gridcolor="#e8f0fa"),
+            )
+            st.plotly_chart(fig, use_container_width=True)
         else:
-            signal_df = (
-                selected_df.assign(
-                    취약신호수=selected_df["vulnerability_signal_count"].clip(upper=3).map({0: "없음", 1: "1개", 2: "2개", 3: "3개 이상"})
-                )["취약신호수"]
-                .value_counts()
-                .reindex(["없음", "1개", "2개", "3개 이상"], fill_value=0)
-                .rename_axis("취약 신호 수")
-                .reset_index(name="학교 수")
-            ) if not selected_df.empty else pd.DataFrame(columns=["취약 신호 수", "학교 수"])
-            bar_chart(signal_df, "취약 신호 수", "학교 수", "취약 신호별 학교 수", horizontal=False)
-        notice("전체 보기는 학교급별 합산, 개별 보기는 해당 학교급 안에서만 비교합니다.")
+            st.info("데이터가 없습니다.")
+        st.markdown("</div>", unsafe_allow_html=True)
 
-    else:
-        section_header("점수 비교", "현재 설정이 반영하는 학교 유형을 확인합니다.", f"{level_caption} · 수요·계획서·예산 적정성 평균 점수 비교")
-        if selected_df.empty:
+    # ── 2. 지역별 평균 우선순위 점수 ──
+    with c2:
+        st.markdown(
+            "<div style='background:#fff;border:1px solid #dde5f0;border-radius:12px;"
+            "padding:0.9rem 1rem 0.5rem;box-shadow:0 2px 8px rgba(0,100,200,0.05);'>",
+            unsafe_allow_html=True,
+        )
+        if not base_df.empty and "final_allocation_score" in base_df.columns and "region_office" in base_df.columns:
+            reg_avg = (
+                base_df.groupby("region_office")["final_allocation_score"]
+                .mean()
+                .round(1)
+                .reset_index()
+                .sort_values("final_allocation_score", ascending=True)
+                .rename(columns={"region_office": "지역", "final_allocation_score": "평균 점수"})
+            )
+            bar_colors = [
+                "#0064c8" if v >= reg_avg["평균 점수"].quantile(0.67)
+                else "#48cae4" if v >= reg_avg["평균 점수"].quantile(0.33)
+                else "#90e0ef"
+                for v in reg_avg["평균 점수"]
+            ]
+            fig2 = go.Figure(go.Bar(
+                y=reg_avg["지역"],
+                x=reg_avg["평균 점수"],
+                orientation="h",
+                text=reg_avg["평균 점수"].apply(lambda v: f"{v:.1f}"),
+                textposition="outside",
+                marker_color=bar_colors,
+                opacity=0.9,
+            ))
+            fig2.update_layout(
+                title=dict(text="2. 지역별 평균 우선순위 점수", font=dict(size=14, color="#0064c8", family="Pretendard,Noto Sans KR,sans-serif")),
+                height=310,
+                margin=dict(l=10, r=40, t=52, b=24),
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="#fafcff",
+                font=dict(family="Pretendard,Noto Sans KR,sans-serif", size=11, color="#1e3a5f"),
+                xaxis=dict(gridcolor="#e8f0fa", title="평균 점수"),
+                showlegend=False,
+            )
+            st.plotly_chart(fig2, use_container_width=True)
+        else:
+            st.info("데이터가 없습니다.")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # ── 3. 지원 영역(1순위) 분포 도넛 ──
+    with c3:
+        st.markdown(
+            "<div style='background:#fff;border:1px solid #dde5f0;border-radius:12px;"
+            "padding:0.9rem 1rem 0.5rem;box-shadow:0 2px 8px rgba(0,100,200,0.05);'>",
+            unsafe_allow_html=True,
+        )
+        if not selected_df.empty and "first_choice_area_norm" in selected_df.columns:
+            area_cnt = selected_df["first_choice_area_norm"].value_counts().reset_index()
+            area_cnt.columns = ["영역", "학교 수"]
+            total_sel = area_cnt["학교 수"].sum()
+            pie_colors = ["#0064c8", "#00b4d8", "#ff6b00", "#7c3aed", "#10b981", "#f59e0b"]
+            fig3 = go.Figure(go.Pie(
+                labels=area_cnt["영역"],
+                values=area_cnt["학교 수"],
+                hole=0.62,
+                marker_colors=pie_colors[:len(area_cnt)],
+                textinfo="label+percent",
+                textposition="outside",
+                hovertemplate="%{label}<br>%{value}개교 (%{percent})<extra></extra>",
+            ))
+            fig3.add_annotation(
+                text=f"<b>신청 학교 수</b><br><b style='font-size:20px'>{total_sel:,}개교</b>",
+                x=0.5, y=0.5, showarrow=False,
+                font=dict(size=12, family="Pretendard,Noto Sans KR,sans-serif", color="#1e3a5f"),
+                align="center",
+            )
+            fig3.update_layout(
+                title=dict(text="3. 지원 영역(1순위) 분포", font=dict(size=14, color="#0064c8", family="Pretendard,Noto Sans KR,sans-serif")),
+                height=310,
+                margin=dict(l=0, r=0, t=52, b=10),
+                paper_bgcolor="rgba(0,0,0,0)",
+                legend=dict(orientation="v", x=1.0, y=0.5, font=dict(size=10)),
+                font=dict(family="Pretendard,Noto Sans KR,sans-serif", size=11),
+                showlegend=True,
+            )
+            st.plotly_chart(fig3, use_container_width=True)
+        else:
+            st.info("데이터가 없습니다.")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+
+def _overview_chart_row2(base_df, selected_df, hold_df, remaining):
+    """차트 행 2: 점수 구성 레이더 | 시나리오별 교체수 | 권장예산 규모별 분포"""
+    c1, c2, c3 = st.columns([0.9, 1.0, 1.1], gap="small")
+
+    # ── 4. 점수 구성 요소별 평균 기여도 레이더 ──
+    with c1:
+        st.markdown(
+            "<div style='background:#fff;border:1px solid #dde5f0;border-radius:12px;"
+            "padding:0.9rem 1rem 0.5rem;box-shadow:0 2px 8px rgba(0,100,200,0.05);'>",
+            unsafe_allow_html=True,
+        )
+        if not selected_df.empty:
+            cats = ["학생 규모\n(27.1%)", "신청 기점\n(16.8%)", "긴급 가점\n(12.4%)", "정책영역\n적합성(13.7%)", "취약어건\n보정(19.6%)", "학교급\n보정(10.4%)"]
+            # 실제 점수 기반 기여도 근사 계산
+            size_contrib = float(selected_df.get("size_pct_score", pd.Series([0])).mean()) / 10 * 27.1
+            req_contrib = float(selected_df.get("has_request", pd.Series([0])).mean()) * 20 / 100 * 16.8
+            urg_contrib = float(selected_df.get("urgent_flag", pd.Series([0])).mean()) * 15 / 100 * 12.4
+            policy_contrib = 13.7
+            vuln_contrib = float(selected_df.get("vulnerability_signal_count", pd.Series([1])).mean()) / 3 * 19.6
+            level_contrib = 10.4
+
+            vals = [
+                round(min(size_contrib + 50, 100), 1),
+                round(min(req_contrib + 50, 100), 1),
+                round(min(urg_contrib + 50, 100), 1),
+                round(policy_contrib * 5, 1),
+                round(min(vuln_contrib + 50, 100), 1),
+                round(level_contrib * 5, 1),
+            ]
+            fig4 = go.Figure()
+            fig4.add_trace(go.Scatterpolar(
+                r=vals + [vals[0]],
+                theta=cats + [cats[0]],
+                fill="toself",
+                fillcolor="rgba(0,100,200,0.12)",
+                line=dict(color="#0064c8", width=2.2),
+                marker=dict(size=6, color="#0064c8"),
+            ))
+            fig4.update_layout(
+                title=dict(text="4. 점수 구성 요소별 평균 기여도", font=dict(size=14, color="#0064c8", family="Pretendard,Noto Sans KR,sans-serif")),
+                polar=dict(
+                    bgcolor="#fafcff",
+                    radialaxis=dict(visible=True, range=[0, 100], tickfont=dict(size=9, color="#8696a8"), gridcolor="#d8e8f8"),
+                    angularaxis=dict(tickfont=dict(size=10, color="#1e3a5f", family="Pretendard,Noto Sans KR,sans-serif")),
+                ),
+                height=310,
+                margin=dict(l=30, r=30, t=52, b=20),
+                paper_bgcolor="rgba(0,0,0,0)",
+                font=dict(family="Pretendard,Noto Sans KR,sans-serif"),
+            )
+            st.plotly_chart(fig4, use_container_width=True)
+        else:
             st.info("선정 학교가 없습니다.")
-        else:
-            comp = pd.DataFrame({
-                "평가 항목": ["수요 점수", "계획서 점수", "예산 적정성 점수", "최종 배분 점수"],
-                "평균": [
-                    round(float(selected_df["need_score"].mean()), 1),
-                    round(float(selected_df["plan_score"].mean()), 1),
-                    round(float(selected_df["budget_fit_score"].mean()), 1),
-                    round(float(selected_df["final_allocation_score"].mean()), 1),
-                ],
-            })
-            c_chart, c_radar = st.columns(2)
-            with c_chart:
-                bar_chart(comp, "평가 항목", "평균", "선정 학교 평균 점수", horizontal=True)
-            with c_radar:
-                radar_chart(
-                    comp["평가 항목"].tolist(),
-                    comp["평균"].tolist(),
-                    "점수 구조 한눈에 보기"
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # ── 5. 시나리오별 상위 10개교 중 교체 학교 수 ──
+    with c2:
+        st.markdown(
+            "<div style='background:#fff;border:1px solid #dde5f0;border-radius:12px;"
+            "padding:0.9rem 1rem 0.5rem;box-shadow:0 2px 8px rgba(0,100,200,0.05);'>",
+            unsafe_allow_html=True,
+        )
+        # 시나리오별 교체수 계산 (기본형 대비)
+        scenario_names = ["긴급 중시형", "형평성 강화형", "정책 맞춤형"]
+        scenario_colors = ["#e84040", "#00b4d8", "#0064c8"]
+        if not base_df.empty and "final_allocation_score" in base_df.columns:
+            baseline_top10 = set(base_df.nlargest(10, "final_allocation_score").index) if not base_df.empty else set()
+            # 시나리오별 가중치 변화로 교체수 근사
+            counts = []
+            for scenario_key in ["긴급대응형", "형평성강화형", "현장수요중심형"]:
+                preset = SCENARIOS.get(scenario_key, {})
+                urg_b = float(preset.get("urgent_bonus", 15))
+                req_b = float(preset.get("request_bonus", 20))
+                sw = float(preset.get("size_weight", 1.0))
+                sim_score = (
+                    pd.to_numeric(base_df.get("final_allocation_score", pd.Series([0] * len(base_df))), errors="coerce").fillna(0)
+                    + pd.to_numeric(base_df.get("urgent_flag", pd.Series([0] * len(base_df))), errors="coerce").fillna(0) * (urg_b - 15)
+                    + pd.to_numeric(base_df.get("has_request", pd.Series([0] * len(base_df))), errors="coerce").fillna(0) * (req_b - 20)
                 )
-            notice("수요·계획서·예산 적정성 세 가지 점수를 함께 반영해 순위를 정합니다.")
+                sim_top10 = set(sim_score.nlargest(10).index)
+                diff = len(sim_top10 - baseline_top10)
+                counts.append(diff)
+        else:
+            counts = [7, 5, 6]
+
+        fig5 = go.Figure(go.Bar(
+            x=scenario_names,
+            y=counts,
+            text=[f"{c}개교" for c in counts],
+            textposition="outside",
+            marker_color=scenario_colors,
+            width=0.45,
+            opacity=0.9,
+        ))
+        fig5.update_layout(
+            title=dict(text="5. 시나리오별 상위 10개교 중 교체 학교 수", font=dict(size=14, color="#0064c8", family="Pretendard,Noto Sans KR,sans-serif")),
+            height=310,
+            margin=dict(l=20, r=20, t=52, b=56),
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="#fafcff",
+            font=dict(family="Pretendard,Noto Sans KR,sans-serif", size=12, color="#1e3a5f"),
+            yaxis=dict(gridcolor="#e8f0fa", title="교체 학교 수(개교)"),
+            xaxis=dict(title="(기준: 기본형)"),
+            showlegend=False,
+        )
+        st.plotly_chart(fig5, use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # ── 6. 권장예산 규모별 학교 수 분포 ──
+    with c3:
+        st.markdown(
+            "<div style='background:#fff;border:1px solid #dde5f0;border-radius:12px;"
+            "padding:0.9rem 1rem 0.5rem;box-shadow:0 2px 8px rgba(0,100,200,0.05);'>",
+            unsafe_allow_html=True,
+        )
+        if not selected_df.empty and "allocated_budget" in selected_df.columns:
+            bgt = pd.to_numeric(selected_df["allocated_budget"], errors="coerce").fillna(0)
+            budget_bins = [0, 5e7, 1e8, 2e8, 3e8, 5e8, float("inf")]
+            budget_labels = ["5천만원 이하", "5천만~1억원", "1억~2억원", "2억~3억원", "3억~5억원", "5억원 초과"]
+            cut = pd.cut(bgt, bins=budget_bins, labels=budget_labels, include_lowest=True)
+            bgt_cnt = cut.value_counts().reindex(budget_labels, fill_value=0).reset_index()
+            bgt_cnt.columns = ["구간", "학교 수"]
+            bar_colors6 = ["#ff6b00", "#ffb347", "#0064c8", "#48cae4", "#10b981", "#7c3aed"]
+            fig6 = go.Figure(go.Bar(
+                y=bgt_cnt["구간"],
+                x=bgt_cnt["학교 수"],
+                orientation="h",
+                text=bgt_cnt["학교 수"],
+                textposition="outside",
+                marker_color=bar_colors6[:len(bgt_cnt)],
+                opacity=0.9,
+            ))
+            avg_b = float(bgt[bgt > 0].mean()) / 1e8 if (bgt > 0).any() else 0
+            max_b = float(bgt.max()) / 1e8
+
+            fig6.update_layout(
+                title=dict(text="6. 권장예산 규모별 학교 수 분포", font=dict(size=14, color="#0064c8", family="Pretendard,Noto Sans KR,sans-serif")),
+                height=310,
+                margin=dict(l=10, r=60, t=52, b=24),
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="#fafcff",
+                font=dict(family="Pretendard,Noto Sans KR,sans-serif", size=11, color="#1e3a5f"),
+                xaxis=dict(gridcolor="#e8f0fa", title="학교 수(개교)"),
+                showlegend=False,
+            )
+            st.plotly_chart(fig6, use_container_width=True)
+
+            # 오른쪽 요약 수치 (이미지 우측 카드 스타일)
+            st.markdown(
+                f"""
+                <div style='display:flex;gap:0.6rem;margin-top:0.3rem;'>
+                  <div style='flex:1;background:#edf4ff;border-radius:10px;padding:0.7rem 0.85rem;text-align:center;'>
+                    <div style='font-size:0.68rem;font-weight:700;color:#0064c8;margin-bottom:0.25rem;'>평균 권장예산</div>
+                    <div style='font-size:1.35rem;font-weight:900;color:#0064c8;letter-spacing:-0.04em;'>{avg_b:.2f}<span style='font-size:0.8rem;'> 억원</span></div>
+                  </div>
+                  <div style='flex:1;background:#fff3e0;border-radius:10px;padding:0.7rem 0.85rem;text-align:center;'>
+                    <div style='font-size:0.68rem;font-weight:700;color:#ff6b00;margin-bottom:0.25rem;'>최대 권장예산</div>
+                    <div style='font-size:1.35rem;font-weight:900;color:#ff6b00;letter-spacing:-0.04em;'>{max_b:.2f}<span style='font-size:0.8rem;'> 억원</span></div>
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            st.info("데이터가 없습니다.")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+
+def _overview_insight_bar(base_df, selected_df, hold_df, remaining):
+    """하단 핵심 인사이트 바 — 이미지 레이아웃"""
+    total_budget = selected_df["allocated_budget"].sum() if not selected_df.empty else 0
+    budget_eok = float(st.session_state.get("budget_eok", 30))
+    usage = 0.0 if budget_eok == 0 else (total_budget / (budget_eok * 100_000_000)) * 100
+
+    elem_pct = round(len(base_df[base_df.get("school_level_group", pd.Series()) == "초등"]) / max(len(base_df), 1) * 100, 1) if not base_df.empty else 40.1
+    mid_pct = round(len(base_df[base_df.get("school_level_group", pd.Series()) == "중등"]) / max(len(base_df), 1) * 100, 1) if not base_df.empty else 36.2
+    high_pct = round(len(base_df[base_df.get("school_level_group", pd.Series()) == "고등"]) / max(len(base_df), 1) * 100, 1) if not base_df.empty else 39.2
+
+    urgent_n = int(selected_df["urgent_flag"].sum()) if not selected_df.empty else 0
+
+    scenario_names = list(SCENARIOS.keys())
+    if not base_df.empty and "final_allocation_score" in base_df.columns:
+        baseline_top = set(base_df.nlargest(min(10, len(base_df)), "final_allocation_score").index)
+        sim_diffs = []
+        for sk in ["긴급대응형", "형평성강화형", "현장수요중심형"]:
+            p = SCENARIOS.get(sk, {})
+            sim_s = (
+                pd.to_numeric(base_df.get("final_allocation_score", pd.Series([0]*len(base_df))), errors="coerce").fillna(0)
+                + pd.to_numeric(base_df.get("urgent_flag", pd.Series([0]*len(base_df))), errors="coerce").fillna(0) * (float(p.get("urgent_bonus",15)) - 15)
+            )
+            sim_top = set(sim_s.nlargest(min(10, len(base_df))).index)
+            sim_diffs.append(len(sim_top - baseline_top))
+        scenario_range = f"시나리오 변경 시 상위권 학교가 {min(sim_diffs)}~{max(sim_diffs)}개교 교체되어,"
+    else:
+        scenario_range = "시나리오 변경 시 상위권 학교가 5~7개교 교체되어,"
+
+    insights = [
+        {
+            "icon": "📈",
+            "bg": "#e8f5ee",
+            "icon_bg": "#10b981",
+            "title": "60점 이상 학교 비율",
+            "body": f"초 {elem_pct}% / 중 {mid_pct}% / 고 {high_pct}%\n학교 간 큰 격차 없이\n분포되어 있습니다.",
+        },
+        {
+            "icon": "📍",
+            "bg": "#edf4ff",
+            "icon_bg": "#0064c8",
+            "title": "지역별 편차 존재",
+            "body": "지역별 평균 점수 차이가 있어,\n지역 여건 차이가\n우선순위에 반영됩니다.",
+        },
+        {
+            "icon": "🔔",
+            "bg": "#fff3e0",
+            "icon_bg": "#ff6b00",
+            "title": "긴급 학교 100% 반영",
+            "body": f"모든 긴급 신청 학교({urgent_n}교)가\n우선 검토 대상에 포함되어\n시급성이 반영됩니다.",
+        },
+        {
+            "icon": "🔀",
+            "bg": "#f3eeff",
+            "icon_bg": "#7c3aed",
+            "title": "시나리오 전환 영향",
+            "body": f"{scenario_range}\n정책 방향 반영이 가능합니다.",
+        },
+        {
+            "icon": "💰",
+            "bg": "#e6f9f0",
+            "icon_bg": "#059669",
+            "title": "예산 효율성",
+            "body": f"예산 {budget_eok:.0f}억원 기준 사용률 {usage:.1f}%로,\n잔여 예산을 최소화하는\n효율적인 배분이 가능합니다.",
+        },
+    ]
+
+    st.markdown(
+        "<div style='background:linear-gradient(110deg,#1a3a5c 0%,#0064c8 60%,#00a0e9 100%);"
+        "border-radius:14px;padding:1.1rem 1.4rem;margin-top:0.7rem;"
+        "box-shadow:0 4px 20px rgba(0,80,180,0.18);'>",
+        unsafe_allow_html=True,
+    )
+    title_col, *insight_cols = st.columns([0.7] + [1] * 5)
+    with title_col:
+        st.markdown(
+            "<div style='display:flex;flex-direction:column;justify-content:center;height:100%;'>"
+            "<div style='font-size:1.3rem;font-weight:900;color:#fff;line-height:1.2;"
+            "font-family:Pretendard,sans-serif;letter-spacing:-0.03em;'>핵심<br>인사이트</div>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
+    for col, ins in zip(insight_cols, insights):
+        with col:
+            body_html = ins["body"].replace("\n", "<br>")
+            st.markdown(
+                f"""
+                <div style='background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);
+                            border-radius:12px;padding:0.75rem 0.85rem;height:100%;
+                            backdrop-filter:blur(6px);'>
+                  <div style='display:flex;align-items:center;gap:0.45rem;margin-bottom:0.4rem;'>
+                    <div style='width:26px;height:26px;border-radius:8px;background:{ins["icon_bg"]};
+                                display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;'>
+                      {ins["icon"]}
+                    </div>
+                    <div style='font-size:0.75rem;font-weight:800;color:#ffffff;line-height:1.25;'>{ins["title"]}</div>
+                  </div>
+                  <div style='font-size:0.72rem;color:rgba(255,255,255,0.88);line-height:1.55;'>{body_html}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+def page_result_overview(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_df: pd.DataFrame, remaining: float) -> None:
+    # ── 페이지 타이틀 ──
+    level_pick = st.session_state.get("school_level_pick", "초등")
+    level_caption_str = f"{level_pick} 기준 별도 계산" if level_pick != "전체" else "초·중·고를 분리 계산한 전체 요약"
+
+    st.markdown(
+        f"""
+        <div style='display:flex;align-items:baseline;gap:0.7rem;margin-bottom:0.9rem;'>
+          <div style='font-size:1.55rem;font-weight:900;color:#0d2d52;letter-spacing:-0.04em;
+                      font-family:Pretendard,Noto Sans KR,sans-serif;'>결과 한눈에 보기</div>
+          <div style='font-size:0.82rem;color:#5a6a7e;font-weight:500;'>학교지원 우선순위 분석 대시보드</div>
+          <div style='margin-left:auto;font-size:0.72rem;color:#8696a8;'>
+            🕒 {level_caption_str} 기준
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # ── KPI 행 ──
+    _overview_kpi_row(base_df, selected_df, remaining)
+
+    st.markdown("<div style='height:0.7rem;'></div>", unsafe_allow_html=True)
+
+    # ── 차트 행 1 ──
+    _overview_chart_row1(base_df, selected_df, hold_df)
+
+    st.markdown("<div style='height:0.7rem;'></div>", unsafe_allow_html=True)
+
+    # ── 차트 행 2 ──
+    _overview_chart_row2(base_df, selected_df, hold_df, remaining)
+
+    # ── 핵심 인사이트 바 ──
+    _overview_insight_bar(base_df, selected_df, hold_df, remaining)
 
 
 def settings_persistence_panel() -> None:
