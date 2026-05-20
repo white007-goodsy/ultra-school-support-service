@@ -23,474 +23,620 @@ st.set_page_config(
 # ------------------------------------------------------------
 # Styles
 # ------------------------------------------------------------
-PLOT_COLORS = ["#1B6CA8","#0D9488","#059669","#EA580C","#7C3AED","#DB2777","#F59E0B","#64748B"]
+PLOT_COLORS = ["#0064c8", "#00a0e9", "#00b4d8", "#48cae4", "#90e0ef", "#ff6b00", "#ffb347", "#adb5bd"]
 
 
 def inject_style() -> None:
     st.markdown(
         """
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap');
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap');
 
-        /* ═══════════════════════════════════════════════
-           ULTRA v3 — 컬러풀 대시보드 디자인 시스템
-           Primary   #1B6CA8   Teal    #0D9488
-           Green     #059669   Orange  #EA580C
-           Purple    #7C3AED   Pink    #DB2777
-           BG        #F0F4FA
-        ═══════════════════════════════════════════════ */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        * { box-sizing: border-box; }
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           에듀넷 스타일 디자인 시스템
+           Primary: #0064c8  Secondary: #00a0e9
+           Accent:  #ff6b00  Background: #f5f7fb
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
+        /* ── 기반 ── */
         .stApp {
-            background: #EEF2F8;
-            font-family: 'Pretendard', 'Noto Sans KR', -apple-system, sans-serif;
+            background: #f5f7fb;
+            font-family: 'Pretendard', 'Noto Sans KR', -apple-system, 'Apple SD Gothic Neo',
+                         BlinkMacSystemFont, sans-serif;
+            color: #222222;
         }
         .block-container {
             padding-top: 0 !important;
-            padding-bottom: 2rem;
-            max-width: 1500px;
+            padding-bottom: 3rem;
+            max-width: 1460px;
         }
 
-        /* ── 사이드바 ── */
-        [data-testid="stSidebar"] {
-            background: #0A1628 !important;
-            border-right: none !important;
-        }
-        [data-testid="stSidebar"] * {
-            color: #CBD5E1 !important;
-            font-family: 'Pretendard', 'Noto Sans KR', sans-serif !important;
-        }
-        [data-testid="stSidebar"] .stSelectbox label,
-        [data-testid="stSidebar"] .stSlider label,
-        [data-testid="stSidebar"] label {
-            color: #94A3B8 !important;
-            font-size: 0.78rem !important;
-            font-weight: 600 !important;
-            letter-spacing: 0.03em !important;
-            text-transform: uppercase !important;
-        }
-        [data-testid="stSidebar"] div[data-baseweb="select"] > div {
-            background: #1E3A5F !important;
-            border-color: #2D5A8E !important;
-            color: #E2E8F0 !important;
-            border-radius: 8px !important;
-        }
-        [data-testid="stSidebarContent"] {
-            padding: 1.5rem 1rem !important;
-        }
-
-        /* ── 히어로 배너 ── */
-        .hero-banner {
-            background: linear-gradient(135deg, #0A1628 0%, #1B3A5F 40%, #1B6CA8 80%, #0D9488 100%);
-            border-radius: 0 0 20px 20px;
-            padding: 1.6rem 2rem 1.4rem;
-            margin-bottom: 1.2rem;
+        /* ━━━ 히어로 배너 (에듀넷 메인 배너 스타일) ━━━ */
+        .title-panel {
+            background: linear-gradient(110deg, #004ea2 0%, #0064c8 45%, #0096d6 80%, #00b4d8 100%);
+            border: none;
+            border-radius: 0 0 28px 28px;
+            padding: 2rem 2.4rem 1.8rem 2.4rem;
+            margin-bottom: 1.4rem;
+            box-shadow: 0 6px 30px rgba(0,100,200,0.22);
             position: relative;
             overflow: hidden;
-            box-shadow: 0 8px 32px rgba(27,108,168,0.22);
         }
-        .hero-banner::before {
+        /* 배너 배경 장식 */
+        .title-panel::before {
             content: "";
-            position: absolute; right: -80px; top: -80px;
-            width: 360px; height: 360px; border-radius: 50%;
-            background: rgba(255,255,255,0.05);
+            position: absolute;
+            right: -100px; top: -100px;
+            width: 420px; height: 420px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            pointer-events: none;
         }
-        .hero-banner::after {
+        .title-panel::after {
             content: "";
-            position: absolute; right: 100px; bottom: -100px;
-            width: 260px; height: 260px; border-radius: 50%;
-            background: rgba(13,148,136,0.15);
+            position: absolute;
+            right: 180px; bottom: -120px;
+            width: 280px; height: 280px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+            pointer-events: none;
         }
-        .hero-title {
-            font-size: 2rem; font-weight: 900; color: #ffffff;
-            letter-spacing: -0.03em; line-height: 1.2;
-            font-family: 'Pretendard', sans-serif;
+        .title-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.85rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.18);
+            border: 1.5px solid rgba(255,255,255,0.32);
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+            letter-spacing: 0.02em;
         }
-        .hero-sub {
-            font-size: 0.92rem; color: rgba(255,255,255,0.75);
-            margin-top: 0.45rem; line-height: 1.65;
+        .main-title {
+            font-size: 2.05rem;
+            line-height: 1.22;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: -0.035em;
+            font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+            text-shadow: 0 2px 16px rgba(0,0,0,0.12);
         }
-        .hero-badge {
-            display: inline-flex; align-items: center; gap: 0.3rem;
-            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
-            border-radius: 999px; padding: 0.25rem 0.75rem;
-            font-size: 0.72rem; font-weight: 700; color: #ffffff;
-            margin-bottom: 0.65rem; letter-spacing: 0.03em;
+        .sub-title {
+            font-size: 0.96rem;
+            color: rgba(255,255,255,0.88);
+            margin: 0.6rem 0 0 0;
+            line-height: 1.78;
+            max-width: 680px;
+            font-weight: 400;
+            letter-spacing: -0.01em;
         }
-        .hero-stat {
-            display: flex; align-items: stretch;
-            gap: 0.75rem; flex-wrap: wrap; margin-top: 0;
+        .title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+        .title-main-wrap { flex: 1 1 520px; }
+        .title-meta {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 1.1rem;
+        }
+        .title-meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.28rem;
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.92);
+            font-weight: 600;
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.28);
+            border-radius: 6px;
+            padding: 0.3rem 0.7rem;
+        }
+        /* 오른쪽 통계 패널 */
+        .hero-stats {
+            display: flex;
+            gap: 0.85rem;
+            align-items: stretch;
+            flex-shrink: 0;
         }
         .hero-stat-item {
-            background: rgba(255,255,255,0.12);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 12px; padding: 0.7rem 1.1rem;
-            min-width: 100px; text-align: center;
+            background: rgba(255,255,255,0.14);
+            border: 1.5px solid rgba(255,255,255,0.28);
+            border-radius: 16px;
+            padding: 1rem 1.2rem;
+            min-width: 100px;
+            text-align: center;
             backdrop-filter: blur(8px);
         }
         .hero-stat-num {
-            font-size: 1.5rem; font-weight: 900; color: #fff;
-            line-height: 1; letter-spacing: -0.04em;
-            font-family: 'Pretendard', sans-serif;
+            font-size: 1.7rem;
+            font-weight: 900;
+            color: #ffffff;
+            line-height: 1;
+            letter-spacing: -0.04em;
         }
         .hero-stat-label {
-            font-size: 0.68rem; color: rgba(255,255,255,0.72);
-            margin-top: 0.28rem; line-height: 1.4;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.78);
+            font-weight: 500;
+            margin-top: 0.35rem;
+            line-height: 1.45;
         }
+        @media (max-width: 860px) { .hero-stats { display: none; } }
 
-        /* ── GNB 탭 바 ── */
+        /* ━━━ GNB 탭 바 — 흰 배경, 진한 글씨, 클릭 명확 ━━━ */
         .top-nav-host {
             background: #ffffff;
-            border: 1.5px solid #C8D8EE;
-            border-radius: 16px;
-            padding: 0.48rem 0.55rem;
-            margin: 0 0 1.2rem;
-            box-shadow: 0 4px 18px rgba(27,108,168,0.09);
+            border: 1.5px solid #c8d8ee;
+            border-radius: 14px;
+            padding: 0.5rem 0.55rem;
+            margin: 0 0 1.3rem 0;
+            box-shadow: 0 4px 18px rgba(0,80,180,0.10);
         }
+
+        /* 공통 폰트 — 모든 자식 포함 */
         div[data-testid="stButton"] > button,
+        div[data-testid="stButton"] > button > div,
         div[data-testid="stButton"] > button p,
-        div[data-testid="stButton"] > button span,
-        div[data-testid="stButton"] button * {
+        div[data-testid="stButton"] > button span {
             font-family: 'Pretendard', 'Noto Sans KR', sans-serif !important;
-            font-size: 0.95rem !important;
+            font-size: 1.02rem !important;
             font-weight: 700 !important;
             letter-spacing: -0.015em !important;
             line-height: 1.3 !important;
-            color: inherit !important;
         }
+        /* 비활성 기본 — 밝은 회색 배경 + 진한 글씨 */
         div[data-testid="stButton"] > button {
             border-radius: 10px !important;
-            min-height: 2.9rem !important;
-            border: 1.5px solid #DDE8F5 !important;
-            background: #F2F6FC !important;
-            color: #1E3A5F !important;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
-            transition: all .13s !important;
+            min-height: 3.0rem !important;
+            border: 1.5px solid #dde8f5 !important;
+            background: #f2f6fc !important;
+            color: #2a3a52 !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+            transition: background 0.14s, color 0.14s, border-color 0.14s, box-shadow 0.14s, transform 0.09s !important;
             padding: 0.5rem 0.7rem !important;
+            cursor: pointer !important;
             width: 100%;
         }
+        /* 활성 탭 — 파란 배경 + 흰 글씨 + 입체 그림자 */
         div[data-testid="stButton"] > button[kind="primary"],
         div[data-testid="stButton"] > button[kind="primary"] p,
         div[data-testid="stButton"] > button[kind="primary"] span {
-            background: #1B6CA8 !important;
+            background: #0064c8 !important;
             color: #ffffff !important;
-            border-color: #1558A0 !important;
-            box-shadow: 0 4px 14px rgba(27,108,168,0.35),
-                        inset 0 -2px 0 rgba(0,30,80,0.15) !important;
+            border-color: #0053a8 !important;
+            box-shadow:
+                0 4px 14px rgba(0,100,200,0.35),
+                inset 0 -2px 0 rgba(0,40,120,0.18) !important;
             font-weight: 800 !important;
         }
+        /* 비활성 hover */
         div[data-testid="stButton"] > button[kind="secondary"]:hover {
-            background: #DCEEFF !important;
-            color: #1558A0 !important;
-            border-color: #90BCE8 !important;
+            background: #dceeff !important;
+            color: #0053a8 !important;
+            border-color: #90bce8 !important;
+            box-shadow: 0 2px 8px rgba(0,100,200,0.12) !important;
         }
+        /* 활성 hover */
         div[data-testid="stButton"] > button[kind="primary"]:hover {
-            background: #1558A0 !important;
+            background: #0053a8 !important;
         }
+        /* 클릭 */
         div[data-testid="stButton"] > button:active {
-            transform: scale(0.962) !important;
+            transform: scale(0.96) !important;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.14) !important;
         }
 
-        /* ── 서브탭 ── */
+        /* ━━━ 서브탭 — 입체 회색 박스, 진한 글씨 ━━━ */
         .sub-tab-host {
-            background: #EEF4FC;
-            border: 1.5px solid #C4D4E8;
+            background: #f0f5fc;
+            border: 1.5px solid #c4d4e8;
             border-radius: 12px;
-            padding: 0.4rem 0.46rem;
+            padding: 0.42rem 0.48rem;
             margin-bottom: 1.1rem;
-            box-shadow: 0 2px 8px rgba(0,60,150,0.06), inset 0 1px 0 #fff;
+            box-shadow: 0 2px 8px rgba(0,60,150,0.07), inset 0 1px 0 #ffffff;
         }
         .sub-tab-host div[data-testid="stButton"] > button {
             border-radius: 8px !important;
-            min-height: 2.5rem !important;
+            min-height: 2.6rem !important;
             background: #ffffff !important;
-            border: 1.5px solid #D8E6F4 !important;
-            color: #1E3A5F !important;
-            font-size: 0.9rem !important;
+            border: 1.5px solid #d8e6f4 !important;
+            color: #1e3a5f !important;
+            font-size: 0.96rem !important;
             font-weight: 700 !important;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
         }
         .sub-tab-host div[data-testid="stButton"] > button[kind="primary"],
         .sub-tab-host div[data-testid="stButton"] > button[kind="primary"] p,
         .sub-tab-host div[data-testid="stButton"] > button[kind="primary"] span {
-            background: #1B6CA8 !important;
+            background: #0064c8 !important;
             color: #ffffff !important;
-            border-color: #1558A0 !important;
-            box-shadow: 0 3px 10px rgba(27,108,168,0.3) !important;
+            border-color: #0053a8 !important;
+            box-shadow: 0 3px 10px rgba(0,100,200,0.30) !important;
             font-weight: 800 !important;
         }
         .sub-tab-host div[data-testid="stButton"] > button[kind="secondary"]:hover {
-            background: #DCEEFF !important;
-            color: #1558A0 !important;
+            background: #dceeff !important;
+            color: #0053a8 !important;
+            border-color: #90bce8 !important;
         }
 
-        /* ── 필터 패널 ── */
+        /* ━━━ 필터 패널 ━━━ */
         .filter-panel {
             background: #ffffff;
-            border: 1px solid #D0DCF0;
-            border-top: 3px solid #1B6CA8;
-            border-radius: 14px;
-            padding: 1rem 1.3rem 0.65rem;
+            border: 1px solid #dde5f0;
+            border-top: 3px solid #0064c8;
+            border-radius: 10px;
+            padding: 1rem 1.3rem 0.65rem 1.3rem;
             margin-bottom: 0.9rem;
-            box-shadow: 0 2px 12px rgba(27,108,168,0.06);
+            box-shadow: 0 2px 10px rgba(0,100,200,0.05);
         }
         .engine-panel {
-            background: linear-gradient(135deg, #EBF4FF 0%, #E6F7F5 100%);
-            border: 1px solid #B8D8F0;
-            border-left: 4px solid #1B6CA8;
+            background: linear-gradient(135deg, #edf4ff 0%, #e8f6ff 100%);
+            border: 1px solid #c0d8f0;
+            border-left: 4px solid #00a0e9;
             border-radius: 10px;
-            padding: 0.75rem 1.1rem;
-            margin: 0 0 1rem;
+            padding: 0.8rem 1.1rem;
+            margin: 0 0 1rem 0;
         }
         .engine-title {
-            font-size: 0.68rem; font-weight: 800; color: #1B6CA8;
-            letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 0.18rem;
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #0064c8;
+            margin-bottom: 0.22rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
         }
-        .engine-desc { font-size: 0.875rem; color: #1A3A5C; line-height: 1.62; }
+        .engine-desc {
+            font-size: 0.875rem;
+            color: #1a3a5c;
+            line-height: 1.62;
+        }
 
-        /* ── 섹션 헤더 ── */
+        /* ━━━ 섹션 헤더 카드 ━━━ */
         .section-card {
             background: #ffffff;
-            border: 1px solid #D0DCF0;
-            border-top: 4px solid #1B6CA8;
-            border-radius: 14px;
-            padding: 1.15rem 1.5rem 1rem;
-            margin-bottom: 1.2rem;
-            box-shadow: 0 2px 12px rgba(27,108,168,0.05);
+            border: 1px solid #dde5f0;
+            border-top: 4px solid #0064c8;
+            border-radius: 10px;
+            padding: 1.2rem 1.5rem 1.05rem 1.5rem;
+            margin-bottom: 1.3rem;
+            box-shadow: 0 2px 10px rgba(0,100,200,0.05);
         }
         .mini-chip {
             display: inline-block;
-            padding: 0.22rem 0.68rem;
-            font-size: 0.7rem; font-weight: 700;
-            color: #ffffff; background: #1B6CA8;
-            border-radius: 4px; margin-bottom: 0.5rem; letter-spacing: 0.04em;
+            padding: 0.22rem 0.65rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #ffffff;
+            background: #0064c8;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.04em;
         }
         .section-title {
-            font-size: 1.22rem; font-weight: 800; color: #0D2D52;
-            margin-bottom: 0.28rem; line-height: 1.32; letter-spacing: -0.03em;
-            font-family: 'Pretendard', sans-serif;
+            font-size: 1.22rem;
+            font-weight: 800;
+            color: #0d2d52;
+            margin-bottom: 0.3rem;
+            line-height: 1.3;
+            letter-spacing: -0.03em;
+            font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
         }
-        .section-desc { font-size: 0.875rem; color: #5A6A7E; line-height: 1.72; }
+        .section-desc {
+            font-size: 0.875rem;
+            color: #5a6a7e;
+            line-height: 1.75;
+            letter-spacing: -0.01em;
+        }
 
-        /* ══ 컬러풀 메트릭 카드 ══ */
+        /* ━━━ 메트릭 카드 (에듀넷 수치 강조 스타일) ━━━ */
         .metric-card {
             background: #ffffff;
-            border-radius: 16px;
-            padding: 1.1rem 1.25rem 1rem;
-            min-height: 120px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.07);
-            transition: transform .18s, box-shadow .18s;
-            position: relative; overflow: hidden;
+            border: 1px solid #dde5f0;
+            border-radius: 12px;
+            padding: 1.25rem 1.3rem 1.1rem 1.3rem;
+            min-height: 118px;
+            box-shadow: 0 2px 10px rgba(0,100,200,0.05);
+            transition: box-shadow 0.2s, transform 0.15s;
+            position: relative;
+            overflow: hidden;
+        }
+        .metric-card::after {
+            content: "";
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #0064c8, #00a0e9);
+            border-radius: 0 0 12px 12px;
         }
         .metric-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 28px rgba(0,0,0,0.12);
-        }
-        .metric-card::before {
-            content: "";
-            position: absolute; top: 0; left: 0; right: 0;
-            height: 4px;
-        }
-        /* 카드별 컬러 */
-        .mc-blue::before   { background: linear-gradient(90deg,#1B6CA8,#2E86DE); }
-        .mc-teal::before   { background: linear-gradient(90deg,#0D9488,#14B8A6); }
-        .mc-green::before  { background: linear-gradient(90deg,#059669,#10B981); }
-        .mc-orange::before { background: linear-gradient(90deg,#EA580C,#F97316); }
-        .mc-purple::before { background: linear-gradient(90deg,#7C3AED,#A855F7); }
-        .mc-pink::before   { background: linear-gradient(90deg,#DB2777,#EC4899); }
-        .mc-blue::before   { background: linear-gradient(90deg,#1B6CA8,#2E86DE); }
-        .mc-teal::before   { background: linear-gradient(90deg,#0D9488,#14B8A6); }
-        .mc-green::before  { background: linear-gradient(90deg,#059669,#10B981); }
-        .mc-orange::before { background: linear-gradient(90deg,#EA580C,#F97316); }
-        .mc-purple::before { background: linear-gradient(90deg,#7C3AED,#A855F7); }
-        .mc-pink::before   { background: linear-gradient(90deg,#DB2777,#EC4899); }
-        .mc-red::before    { background: linear-gradient(90deg,#DC2626,#EF4444); }
-        .mc-blue   .metric-value { color: #1B6CA8; }
-        .mc-teal   .metric-value { color: #0D9488; }
-        .mc-green  .metric-value { color: #059669; }
-        .mc-orange .metric-value { color: #EA580C; }
-        .mc-purple .metric-value { color: #7C3AED; }
-        .mc-pink   .metric-value { color: #DB2777; }
-        .mc-red    .metric-value { color: #DC2626; }
-        .metric-icon {
-            position: absolute; right: 1rem; top: 0.9rem;
-            font-size: 1.5rem; opacity: 0.18;
+            box-shadow: 0 6px 22px rgba(0,100,200,0.12);
+            transform: translateY(-2px);
         }
         .metric-label {
-            font-size: 0.7rem; font-weight: 700; color: #94A3B8;
-            letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.45rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #8696a8;
+            margin-bottom: 0.52rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
         }
         .metric-value {
-            font-size: 1.82rem; font-weight: 900;
-            line-height: 1.06; letter-spacing: -0.045em;
-            font-family: 'Pretendard', sans-serif;
+            font-size: 1.82rem;
+            font-weight: 900;
+            color: #0064c8;
+            line-height: 1.06;
+            letter-spacing: -0.045em;
+            font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
         }
-        .metric-sub { font-size: 0.74rem; color: #94A3B8; margin-top: 0.44rem; line-height: 1.5; }
-        .metric-badge {
-            display: inline-flex; align-items: center; gap: 0.2rem;
-            font-size: 0.72rem; font-weight: 700;
-            padding: 0.15rem 0.48rem; border-radius: 999px; margin-top: 0.38rem;
+        .metric-sub {
+            font-size: 0.75rem;
+            color: #8696a8;
+            margin-top: 0.48rem;
+            line-height: 1.5;
         }
-        .badge-up   { background: #D1FAE5; color: #059669; }
-        .badge-down { background: #FEE2E2; color: #DC2626; }
-        .badge-neu  { background: #DBEAFE; color: #1D4ED8; }
 
-        /* ── 학교 카드 ── */
+        /* ━━━ 학교 카드 ━━━ */
         .school-card {
             background: #ffffff;
-            border: 1px solid #E2ECF8;
-            border-radius: 14px;
-            padding: 1.15rem 1.15rem 1.05rem;
-            min-height: 215px;
-            box-shadow: 0 2px 10px rgba(27,108,168,0.06);
-            transition: box-shadow .2s, transform .15s, border-color .15s;
+            border: 1px solid #dde5f0;
+            border-radius: 12px;
+            padding: 1.25rem 1.2rem 1.15rem;
+            min-height: 208px;
+            box-shadow: 0 2px 8px rgba(0,100,200,0.05);
+            transition: box-shadow 0.22s, transform 0.15s;
         }
         .school-card:hover {
-            box-shadow: 0 10px 32px rgba(27,108,168,0.15);
+            box-shadow: 0 10px 30px rgba(0,100,200,0.13);
             transform: translateY(-3px);
-            border-color: #90BCE8;
+            border-color: #aac8e8;
+        }
+        .school-rank {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 800;
+            color: #ffffff;
+            background: linear-gradient(135deg, #0064c8, #00a0e9);
+            border-radius: 4px;
+            padding: 0.2rem 0.55rem;
+            margin-bottom: 0.55rem;
+            letter-spacing: 0.06em;
         }
         .school-name {
-            font-size: 0.98rem; font-weight: 800; color: #0D2D52;
-            line-height: 1.32; letter-spacing: -0.02em;
-            font-family: 'Pretendard', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #0d2d52;
+            line-height: 1.35;
+            margin-bottom: 0.38rem;
+            letter-spacing: -0.025em;
+            font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
         }
-        .school-meta { font-size: 0.79rem; color: #64748B; line-height: 1.7; margin-bottom: 0.5rem; }
+        .school-meta {
+            font-size: 0.82rem;
+            color: #5a6a7e;
+            margin-bottom: 0.6rem;
+            line-height: 1.72;
+        }
         .school-reason {
-            font-size: 0.8rem; color: #2C4060; line-height: 1.68;
-            padding-top: 0.5rem; border-top: 1px solid #EDF2F9;
+            font-size: 0.82rem;
+            color: #2c4060;
+            line-height: 1.72;
+            padding-top: 0.58rem;
+            border-top: 1px solid #edf2f9;
         }
 
-        /* ── 요약 박스 ── */
+        /* ━━━ 요약 박스 ━━━ */
         .summary-box {
             background: #ffffff;
-            border: 1px solid #D0DCF0;
-            border-radius: 14px;
-            padding: 1.15rem 1.25rem 1rem;
-            min-height: 215px;
-            box-shadow: 0 2px 10px rgba(27,108,168,0.05);
+            border: 1px solid #dde5f0;
+            border-radius: 12px;
+            padding: 1.25rem 1.3rem 1.1rem;
+            min-height: 208px;
+            box-shadow: 0 2px 8px rgba(0,100,200,0.05);
         }
         .summary-title {
-            font-size: 0.9rem; font-weight: 800; color: #1B6CA8;
-            margin-bottom: 0.7rem; padding-bottom: 0.55rem;
-            border-bottom: 1.5px solid #DDEEFF;
-            display: flex; align-items: center; gap: 0.4rem;
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: #0064c8;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1.5px solid #ddeeff;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
         }
-        .summary-title::before { content: "📋"; font-size: 0.85rem; }
-        .summary-list { font-size: 0.85rem; color: #2C4060; line-height: 1.9; }
+        .summary-title::before { content: "📋"; font-size: 0.88rem; }
+        .summary-list {
+            font-size: 0.86rem;
+            color: #2c4060;
+            line-height: 2.0;
+        }
         .summary-list ul { margin: 0; padding: 0; list-style: none; }
-        .summary-list li { padding: 0.15rem 0; border-bottom: 1px solid #F0F5FB; }
+        .summary-list li {
+            padding: 0.18rem 0;
+            border-bottom: 1px solid #f0f5fb;
+        }
         .summary-list li:last-child { border-bottom: none; }
 
-        /* ── 알림 노트 ── */
+        /* ━━━ 알림 노트 ━━━ */
         .good-note {
-            background: #EFF8FF; color: #0D4C8A;
-            border: 1px solid #BAD8F8; border-left: 4px solid #1B6CA8;
-            border-radius: 9px; padding: 0.8rem 1rem;
-            font-size: 0.86rem; line-height: 1.7; margin-top: 0.65rem;
+            background: #edf6ff;
+            color: #0d4c8a;
+            border: 1px solid #b8d8f8;
+            border-left: 4px solid #0064c8;
+            border-radius: 8px;
+            padding: 0.85rem 1.05rem;
+            font-size: 0.86rem;
+            line-height: 1.7;
+            margin-top: 0.65rem;
         }
         .warn-note {
-            background: #FFF8ED; color: #7C4A00;
-            border: 1px solid #FFD89C; border-left: 4px solid #EA580C;
-            border-radius: 9px; padding: 0.8rem 1rem;
-            font-size: 0.86rem; line-height: 1.7; margin-top: 0.65rem;
+            background: #fff8ed;
+            color: #7c4a00;
+            border: 1px solid #ffd89c;
+            border-left: 4px solid #ff6b00;
+            border-radius: 8px;
+            padding: 0.85rem 1.05rem;
+            font-size: 0.86rem;
+            line-height: 1.7;
+            margin-top: 0.65rem;
         }
 
-        /* ── 로직 박스 ── */
+        /* ━━━ 로직 박스 ━━━ */
         .logic-box {
-            background: #ffffff; border: 1px solid #D0DCF0;
-            border-radius: 10px; padding: 1rem 1.1rem;
-            box-shadow: 0 2px 8px rgba(27,108,168,0.04);
+            background: #ffffff;
+            border: 1px solid #dde5f0;
+            border-radius: 10px;
+            padding: 1rem 1.1rem;
+            min-height: 120px;
+            box-shadow: 0 2px 8px rgba(0,100,200,0.04);
         }
-        .logic-title { font-size: 0.9rem; font-weight: 700; color: #1B6CA8; margin-bottom: 0.35rem; }
-        .logic-desc  { font-size: 0.86rem; color: #4A5A70; line-height: 1.7; }
-
-        /* ── 학교 아이덴티티 카드 ── */
-        .school-identity-card {
-            background: linear-gradient(135deg,#004EA2 0%,#1B6CA8 55%,#0D9488 100%);
-            border: none; border-radius: 14px;
-            padding: 1.1rem 1.25rem; min-height: 112px;
-            box-shadow: 0 6px 22px rgba(27,108,168,0.25);
+        .logic-title {
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: #0064c8;
+            margin-bottom: 0.38rem;
         }
-        .school-identity-label {
-            font-size: 0.68rem; font-weight: 700; color: rgba(255,255,255,0.62);
-            letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 0.28rem;
-        }
-        .school-identity-name {
-            font-size: 1.42rem; font-weight: 900; color: #fff;
-            line-height: 1.2; letter-spacing: -0.035em; margin-bottom: 0.2rem;
-            font-family: 'Pretendard', sans-serif;
-        }
-        .school-identity-meta { font-size: 0.82rem; color: rgba(255,255,255,0.76); line-height: 1.5; }
-
-        /* ── 인사이트 패널 ── */
-        .insight-panel {
-            background: linear-gradient(135deg,#0A1628 0%,#1E3A5F 100%);
-            border-radius: 14px; padding: 1.1rem 1.3rem;
-            box-shadow: 0 4px 18px rgba(0,0,0,0.15);
-        }
-        .insight-title { font-size: 0.92rem; font-weight: 800; color: #38BDF8; margin-bottom: 0.55rem; }
-        .insight-item  { font-size: 0.86rem; color: rgba(255,255,255,0.88); line-height: 1.72; }
-
-        /* ── 차트 컨테이너 ── */
-        .chart-card {
-            background: #ffffff; border: 1px solid #E2ECF8;
-            border-radius: 14px; padding: 1.1rem 1.25rem;
-            box-shadow: 0 2px 12px rgba(27,108,168,0.05);
-            margin-bottom: 0.8rem;
-        }
-        .chart-title {
-            font-size: 0.92rem; font-weight: 800; color: #0D2D52;
-            margin-bottom: 0.6rem; padding-bottom: 0.5rem;
-            border-bottom: 1.5px solid #EEF4FF;
+        .logic-desc {
+            font-size: 0.86rem;
+            color: #4a5a70;
+            line-height: 1.7;
         }
 
-        /* ── select / slider ── */
+        /* ━━━ 보조 텍스트 ━━━ */
+        .footer-note, .small-help {
+            font-size: 0.8rem;
+            color: #8696a8;
+            line-height: 1.6;
+        }
+
+        /* ━━━ select / slider ━━━ */
         div[data-baseweb="select"] > div {
-            border-color: #C8D8EE !important;
+            border-color: #dde5f0 !important;
             border-radius: 8px !important;
             box-shadow: none !important;
             font-size: 0.9rem !important;
         }
         div[data-baseweb="select"] > div:focus-within {
-            border-color: #1B6CA8 !important;
-            box-shadow: 0 0 0 3px rgba(27,108,168,0.12) !important;
+            border-color: #0064c8 !important;
+            box-shadow: 0 0 0 3px rgba(0,100,200,0.1) !important;
         }
 
-        /* ── 데이터프레임 ── */
+        /* ━━━ 데이터프레임 ━━━ */
         .stDataFrame, div[data-testid="stTable"] {
-            background: #fff; border-radius: 12px;
-            overflow: hidden; border: 1px solid #D0DCF0;
+            background: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #dde5f0;
         }
+        /* 테이블 헤더 */
         .stDataFrame thead th {
-            background: #EBF4FF !important;
-            color: #1B6CA8 !important;
-            font-weight: 700 !important; font-size: 0.82rem !important;
+            background: #f0f6ff !important;
+            color: #0064c8 !important;
+            font-weight: 700 !important;
+            font-size: 0.82rem !important;
         }
 
-        /* ── Streamlit 기본 요소 ── */
-        .stSelectbox label, .stSlider label, .stNumberInput label {
-            font-size: 0.8rem !important; font-weight: 600 !important;
-            color: #4A5A70 !important;
+        /* ━━━ 학교 아이덴티티 카드 ━━━ */
+        .school-identity-card {
+            background: linear-gradient(135deg, #004ea2 0%, #0064c8 60%, #0096d6 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 1.15rem 1.3rem;
+            min-height: 112px;
+            box-shadow: 0 6px 20px rgba(0,100,200,0.22);
+        }
+        .school-identity-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.65);
+            margin-bottom: 0.3rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .school-identity-name {
+            font-size: 1.45rem;
+            font-weight: 900;
+            color: #ffffff;
+            line-height: 1.2;
+            letter-spacing: -0.035em;
+            margin-bottom: 0.22rem;
+            font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+        }
+        .school-identity-meta {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.78);
+            line-height: 1.5;
+        }
+
+        /* ━━━ Streamlit 라벨 ━━━ */
+        .stSelectbox label, .stSlider label, .stNumberInput label,
+        div[data-testid="stMarkdownContainer"] p {
+            font-size: 0.82rem !important;
+            font-weight: 600 !important;
+            color: #4a5a70 !important;
             font-family: 'Pretendard', 'Noto Sans KR', sans-serif !important;
+            letter-spacing: -0.01em !important;
         }
-        div[data-testid="stAlert"] { border-radius: 9px !important; font-size: 0.875rem !important; }
-
-        /* ── 컬럼 간격 ── */
-        div[data-testid="stHorizontalBlock"] {
-            gap: 0.85rem !important; row-gap: 0.85rem !important;
+        div[data-testid="stAlert"] {
+            border-radius: 8px !important;
+            font-size: 0.875rem !important;
         }
 
-        /* ── 스크롤바 ── */
+        /* ━━━ 스크롤바 ━━━ */
         ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: #EEF2F8; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb { background: #90BCE8; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #1B6CA8; }
+        ::-webkit-scrollbar-track { background: #edf2f9; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: #9cc0e8; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #5599d0; }
 
-        /* ── footer ── */
-        .footer-note, .small-help { font-size: 0.79rem; color: #94A3B8; line-height: 1.62; }
+        /* ━━━ Streamlit 컬럼 간격 보정 ━━━ */
+        div[data-testid="stHorizontalBlock"] {
+            gap: 1rem !important;
+            row-gap: 1rem !important;
+        }
+        div[data-testid="column"] > div > div > div {
+            gap: 0.9rem;
+        }
+        /* 각 페이지 구성 요소 사이 위아래 여백 */
+        div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlock"] {
+            gap: 0.75rem;
+        }
+
+        /* ━━━ Streamlit 버튼 내부 p/span 태그 글씨 크기 강제 적용 ━━━
+           Streamlit이 button 안에 <p> 태그를 렌더링하여 font-size를 덮어씀.
+           이를 방지하기 위해 모든 자식 요소에 명시적으로 적용.         */
+        div[data-testid="stButton"] button *,
+        div[data-testid="stButton"] button p,
+        div[data-testid="stButton"] button span,
+        div[data-testid="stButton"] button div {
+            font-size: 0.97rem !important;
+            font-weight: 700 !important;
+            font-family: 'Pretendard', 'Noto Sans KR', sans-serif !important;
+            letter-spacing: -0.02em !important;
+            line-height: 1.3 !important;
+            color: inherit !important;
+        }
+        /* 서브탭 영역 — 배경박스 강조 */
+        .sub-tab-host {
+            background: #f4f8fd;
+            border: 1px solid #d8e8f5;
+            border-radius: 12px;
+            padding: 0.4rem 0.5rem;
+            margin-bottom: 1rem;
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -1120,63 +1266,31 @@ def nav_buttons(options: List[str], state_key: str, columns: int | None = None) 
     return current
 
 
-# 섹션별 칩 색상 매핑
-CHIP_COLORS = {
-    "결과 한눈에 보기": "#1B6CA8",
-    "분포 현황":        "#0D9488",
-    "점수 비교":        "#7C3AED",
-    "지원 기준 설정":   "#EA580C",
-    "계획서 요약":      "#059669",
-    "예산 검토":        "#D97706",
-    "비슷한 학교 비교": "#1B6CA8",
-    "최종 확인":        "#059669",
-    "학교 상세 보기":   "#1B6CA8",
-    "점수 풀이":        "#1B6CA8",
-    "예산 풀이":        "#D97706",
-    "종합 의견":        "#7C3AED",
-    "다음 할 일":       "#059669",
-    "자료 점검 요약":   "#1B6CA8",
-    "원자료 미입력 현황":"#EA580C",
-    "보완값 사용 현황": "#D97706",
-    "확인 필요 학교 목록":"#DC2626",
-    "결과 읽는 법":     "#059669",
-}
-
 def section_header(chip: str, title: str, desc: str) -> None:
-    chip_color = CHIP_COLORS.get(chip, "#1B6CA8")
     st.markdown(
-        f"<div class='section-card' style='border-top-color:{chip_color};'>"
-        f"<div style='display:flex;align-items:center;gap:0.55rem;margin-bottom:0.5rem;'>"
-        f"<span class='mini-chip' style='background:{chip_color};'>{esc(chip)}</span>"
-        f"</div>"
-        f"<div class='section-title'>{esc(title)}</div>"
-        f"<div class='section-desc'>{esc(desc)}</div>"
-        f"</div>",
+        f"""
+        <div class='section-card'>
+            <div style='display:flex; align-items:center; gap:0.55rem; margin-bottom:0.5rem;'>
+                <span class='mini-chip'>{esc(chip)}</span>
+            </div>
+            <div class='section-title'>{esc(title)}</div>
+            <div class='section-desc'>{esc(desc)}</div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
 
-# 색상: blue(기본), teal, green, orange, purple, pink
-METRIC_COLORS = ["mc-blue","mc-teal","mc-green","mc-orange","mc-purple","mc-pink"]
-METRIC_ICONS  = {"개교":"🏫","억원":"💰","만원":"💵","%":"📊","건":"📋","명":"👤"}
-
-def metric_card(label: str, value: str, sub: str = "",
-                color: str = "mc-blue", icon: str = "", badge: str = "", badge_type: str = "neu") -> None:
-    # 아이콘 자동 감지
-    if not icon:
-        for k, v in METRIC_ICONS.items():
-            if k in str(value):
-                icon = v; break
-    icon_html = f"<div class='metric-icon'>{icon}</div>" if icon else ""
-    sub_html  = f"<div class='metric-sub'>{esc(str(sub))}</div>" if sub else ""
-    badge_html = f"<div class='metric-badge badge-{badge_type}'>{badge}</div>" if badge else ""
+def metric_card(label: str, value: str, sub: str = "") -> None:
+    sub_html = f"<div class='metric-sub'>{esc(str(sub))}</div>" if sub else ""
     st.markdown(
-        f"<div class='metric-card {color}'>"
-        f"{icon_html}"
-        f"<div class='metric-label'>{esc(str(label))}</div>"
-        f"<div class='metric-value'>{esc(str(value))}</div>"
-        f"{sub_html}{badge_html}"
-        f"</div>",
+        f"""
+        <div class='metric-card'>
+            <div class='metric-label'>{esc(str(label))}</div>
+            <div class='metric-value'>{esc(str(value))}</div>
+            {sub_html}
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
@@ -1491,17 +1605,16 @@ def bar_chart(df: pd.DataFrame, x: str, y: str, title: str, horizontal: bool = F
 
     fig.update_layout(
         template="plotly_white",
-        font=dict(size=13, family="Pretendard, Noto Sans KR, sans-serif", color="#1E3A5F"),
+        font=dict(size=14, family="Pretendard, Noto Sans KR, sans-serif", color="#1e3a5f"),
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="#FAFCFF",
-        title=dict(font=dict(size=16, color="#1B6CA8", family="Pretendard, Noto Sans KR, sans-serif"), pad=dict(b=12)),
-        margin=dict(l=10, r=10, t=42, b=10),
-        legend=dict(font=dict(size=12)),
-        hoverlabel=dict(bgcolor="#0A1628", font_size=12, font_family="Pretendard, Noto Sans KR, sans-serif"),
+        plot_bgcolor="#fafcff",
+        title=dict(
+            font=dict(size=17, color="#0064c8", family="Pretendard, Noto Sans KR, sans-serif"),
+            pad=dict(b=10)
+        ),
     )
-    fig.update_yaxes(gridcolor="#EEF4FF", gridwidth=1, zeroline=False)
-    fig.update_xaxes(gridcolor="#EEF4FF", gridwidth=1, zeroline=False)
-    fig.update_traces(marker_line_width=0)
+    fig.update_yaxes(gridcolor="#e8f0fa", gridwidth=1.2)
+    fig.update_xaxes(gridcolor="#e8f0fa", gridwidth=1.2)
     st.plotly_chart(fig, use_container_width=True)
 
 
@@ -1512,24 +1625,22 @@ def radar_chart(categories: list, values: list, title: str) -> None:
         r=values + [values[0]],
         theta=categories + [categories[0]],
         fill='toself',
-        fillcolor='rgba(27,108,168,0.15)',
-        line=dict(color='#1B6CA8', width=2.8),
-        marker=dict(size=8, color='#1B6CA8', line=dict(color='#fff', width=1.5)),
+        fillcolor='rgba(0,100,200,0.13)',
+        line=dict(color='#0064c8', width=2.5),
+        marker=dict(size=7, color='#0064c8'),
         hovertemplate='%{theta}: %{r:.1f}점<extra></extra>',
     ))
     fig.update_layout(
-        title=dict(text=title, font=dict(size=15, color='#1B6CA8', family='Pretendard, Noto Sans KR, sans-serif')),
+        title=dict(text=title, font=dict(size=16, color='#0064c8', family='Pretendard, Noto Sans KR, sans-serif')),
         polar=dict(
-            bgcolor='#F8FBFF',
-            radialaxis=dict(visible=True, range=[0, 100],
-                tickfont=dict(size=10, color='#94A3B8'), gridcolor='#DBEAFE', tickcolor='#DBEAFE'),
-            angularaxis=dict(tickfont=dict(size=12, color='#1E3A5F', family='Pretendard, Noto Sans KR, sans-serif'),
-                linecolor='#DBEAFE', gridcolor='#DBEAFE'),
+            bgcolor='#fafcff',
+            radialaxis=dict(visible=True, range=[0, 100], tickfont=dict(size=11, color='#8696a8'), gridcolor='#d8e8f8'),
+            angularaxis=dict(tickfont=dict(size=13, color='#1e3a5f', family='Pretendard, Noto Sans KR, sans-serif')),
         ),
         paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(family='Pretendard, Noto Sans KR, sans-serif', color='#1E3A5F'),
-        height=330,
-        margin=dict(l=35, r=35, t=50, b=15),
+        font=dict(family='Pretendard, Noto Sans KR, sans-serif', color='#1e3a5f'),
+        height=340,
+        margin=dict(l=40, r=40, t=60, b=20),
     )
     st.plotly_chart(fig, use_container_width=True)
 
@@ -1537,7 +1648,7 @@ def radar_chart(categories: list, values: list, title: str) -> None:
 def gauge_chart(value: float, title: str, suffix: str = "%", max_val: float = 100) -> None:
     """단일 수치를 게이지로 표시"""
     value = float(value or 0)
-    color = "#059669" if value >= 80 else "#EA580C" if value >= 50 else "#DC2626"
+    color = "#10b981" if value >= 80 else "#f59e0b" if value >= 50 else "#ef4444"
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=value,
@@ -1587,19 +1698,20 @@ def donut_chart(df: pd.DataFrame, names: str, values: str, title: str) -> None:
     fig.update_layout(
         title=title,
         template="plotly_white",
-        height=370,
-        margin=dict(l=20, r=20, t=55, b=28),
-        legend=dict(orientation="h", y=-0.12, x=0.5, xanchor="center", font=dict(size=11)),
+        height=392,
+        margin=dict(l=26, r=26, t=64, b=38),
+        legend=dict(orientation="h", y=-0.14, x=0.5, xanchor="center"),
         uniformtext_minsize=10,
         uniformtext_mode="hide",
-        font=dict(size=13, family="Pretendard, Noto Sans KR, sans-serif", color="#1E3A5F"),
-        title_font=dict(size=16, color="#1B6CA8", family="Pretendard, Noto Sans KR, sans-serif"),
+        font=dict(size=13, family="Pretendard, Noto Sans KR, sans-serif", color="#2c3e50"),
+        title_font=dict(size=16, color="#0064c8", family="Pretendard, Noto Sans KR, sans-serif"),
         paper_bgcolor="rgba(0,0,0,0)",
-        hoverlabel=dict(bgcolor="#0A1628", font_size=12),
     )
     fig.add_annotation(
-        text=f"<b style='font-size:18px'>{fmt_int(total)}</b><br><span style='font-size:11px;color:#94A3B8'>합계</span>",
-        x=0.5, y=0.5, showarrow=False, align="center",
+        text=f"<b>{fmt_int(total)}</b><br><span style='font-size:12px;color:#8696a8'>합계</span>",
+        x=0.5,
+        y=0.5,
+        showarrow=False,
     )
     st.plotly_chart(fig, use_container_width=True)
 
@@ -1649,23 +1761,15 @@ def page_result_overview(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_
 
         m1, m2, m3, m4, m5 = st.columns(5)
         with m1:
-            metric_card("대상 학교 수", f"{len(base_df):,}개교", level_caption,
-                        color="mc-blue", icon="🏫")
+            metric_card("대상 학교 수", f"{len(base_df):,}개교", level_caption)
         with m2:
-            metric_card("우선 검토 학교 수", f"{len(selected_df):,}개교", "해당 학교급 내 순위 기준",
-                        color="mc-teal", icon="⭐",
-                        badge=f"상위 {len(selected_df)/max(len(base_df),1)*100:.1f}%", badge_type="neu")
+            metric_card("우선 검토 학교 수", f"{len(selected_df):,}개교", "해당 학교급 내 순위 기준")
         with m3:
-            metric_card("권장예산 합계", fmt_money(total_budget), "현재 설정 기준",
-                        color="mc-orange", icon="💰")
+            metric_card("권장예산 합계", fmt_money(total_budget), "현재 설정 기준")
         with m4:
-            metric_card("예산 사용률", f"{usage:.1f}%", f"잔여 {fmt_money(remaining)}",
-                        color="mc-green", icon="📊",
-                        badge="✅ 목표달성" if usage >= 90 else "진행중", badge_type="up" if usage >= 90 else "neu")
+            metric_card("예산 사용률", f"{usage:.1f}%", f"잔여 {fmt_money(remaining)}")
         with m5:
-            metric_card("신청학교 반영률", f"{request_ratio:.1f}%", "선정 학교 중 신청 비율",
-                        color="mc-purple", icon="🔔",
-                        badge="100%" if request_ratio >= 99.9 else f"{request_ratio:.0f}%", badge_type="up")
+            metric_card("신청학교 반영률", f"{request_ratio:.1f}%", "선정 학교 중 신청 비율")
 
         st.markdown("<div style='height:0.8rem;'></div>", unsafe_allow_html=True)
 
@@ -1700,54 +1804,6 @@ def page_result_overview(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_
             ])
             st.markdown("<div style='height:0.45rem;'></div>", unsafe_allow_html=True)
             notice("학교급을 바꾸면 해당 학교급 기준으로 다시 계산됩니다.")
-
-        # ── 핵심 인사이트 패널 (참고 이미지 스타일) ──
-        st.markdown("<div style='height:0.5rem;'></div>", unsafe_allow_html=True)
-        if not selected_df.empty:
-            try:
-                top_region = selected_df["region_office"].value_counts().index[0] if "region_office" in selected_df.columns else "–"
-                top_score  = float(selected_df["final_allocation_score"].max() if "final_allocation_score" in selected_df.columns else 0)
-                low_score  = float(selected_df["final_allocation_score"].min() if "final_allocation_score" in selected_df.columns else 0)
-                score_gap  = round(top_score - low_score, 1)
-                urg_cnt    = int(selected_df["urgent_flag"].sum()) if "urgent_flag" in selected_df.columns else 0
-                area_top   = selected_df["first_choice_area_norm"].value_counts().index[0] if "first_choice_area_norm" in selected_df.columns else "–"
-                budget_avg = selected_df["recommended_budget"].mean() if "recommended_budget" in selected_df.columns else 0
-
-                insight_items = [
-                    ("📈", "상위 학교 점수 분포",
-                     f"최고 {top_score:.0f}점 ~ 최저 {low_score:.0f}점, 점수 격차 {score_gap:.0f}점"),
-                    ("📍", "지역별 편차 확인",
-                     f"가장 많이 선정된 지역: {top_region}"),
-                    ("🔔", f"긴급 학교 {urg_cnt}개교 반영",
-                     f"모든 긴급 신청 학교가 우선 검토 대상에 포함되었습니다."),
-                    ("🎯", f"주요 신청 영역: {area_top}",
-                     f"선정 학교 평균 권장예산: {fmt_money(budget_avg)}"),
-                    ("💡", "예산 효율성",
-                     f"예산 {usage:.1f}% 사용으로 잔여 예산을 최소화했습니다."),
-                ]
-
-                st.markdown(
-                    "<div class='insight-panel'>"
-                    "<div class='insight-title'>💎 핵심 인사이트</div>",
-                    unsafe_allow_html=True,
-                )
-                cols_ins = st.columns(5)
-                for (icon, title_ins, body_ins), col_ins in zip(insight_items, cols_ins):
-                    with col_ins:
-                        st.markdown(
-                            f"<div style='background:rgba(255,255,255,0.08);border-radius:10px;"
-                            f"padding:0.65rem 0.75rem;height:100%;'>"
-                            f"<div style='font-size:1.2rem;margin-bottom:0.3rem;'>{icon}</div>"
-                            f"<div style='font-size:0.8rem;font-weight:700;color:#38BDF8;margin-bottom:0.2rem;"
-                            f"line-height:1.3;'>{esc(title_ins)}</div>"
-                            f"<div style='font-size:0.77rem;color:rgba(255,255,255,0.75);line-height:1.45;'>"
-                            f"{esc(body_ins)}</div>"
-                            f"</div>",
-                            unsafe_allow_html=True,
-                        )
-                st.markdown("</div>", unsafe_allow_html=True)
-            except Exception:
-                pass
         with g1_col:
             gauge_chart(round(usage, 1), "예산 사용률")
         with g2_col:
@@ -1757,15 +1813,11 @@ def page_result_overview(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_
         section_header("분포 현황", "선정 결과의 구성을 확인합니다.", f"{level_caption} 기준 분포")
         c1, c2 = st.columns(2)
         with c1:
-            st.markdown("<div class='chart-card'><div class='chart-title'>📊 선정 / 보류 비율</div>", unsafe_allow_html=True)
             status_df = pd.DataFrame({"구분": ["선정", "보류"], "학교 수": [len(selected_df), len(hold_df)]})
-            donut_chart(status_df, "구분", "학교 수", "")
-            st.markdown("</div>", unsafe_allow_html=True)
+            donut_chart(status_df, "구분", "학교 수", "선정 / 보류 비율")
         with c2:
-            st.markdown("<div class='chart-card'><div class='chart-title'>📋 영역별 선정 학교 수</div>", unsafe_allow_html=True)
             area_df = selected_df["first_choice_area_norm"].value_counts().rename_axis("지원 영역").reset_index(name="학교 수") if not selected_df.empty else pd.DataFrame(columns=["지원 영역", "학교 수"])
-            bar_chart(area_df, "지원 영역", "학교 수", "", horizontal=True)
-            st.markdown("</div>", unsafe_allow_html=True)
+            bar_chart(area_df, "지원 영역", "학교 수", "영역별 선정 학교 수", horizontal=True)
         if level_pick == "전체":
             level_df = selected_df["school_level_group"].value_counts().rename_axis("학교급").reset_index(name="학교 수") if not selected_df.empty else pd.DataFrame(columns=["학교급", "학교 수"])
             bar_chart(level_df, "학교급", "학교 수", "학교급별 선정 수", horizontal=False)
@@ -1798,13 +1850,13 @@ def page_result_overview(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_
             })
             c_chart, c_radar = st.columns(2)
             with c_chart:
-                st.markdown("<div class='chart-card'><div class='chart-title'>📊 평균 점수 비교</div>", unsafe_allow_html=True)
-                bar_chart(comp, "평가 항목", "평균", "", horizontal=True)
-                st.markdown("</div>", unsafe_allow_html=True)
+                bar_chart(comp, "평가 항목", "평균", "선정 학교 평균 점수", horizontal=True)
             with c_radar:
-                st.markdown("<div class='chart-card'><div class='chart-title'>🔷 점수 구조 레이더</div>", unsafe_allow_html=True)
-                radar_chart(comp["평가 항목"].tolist(), comp["평균"].tolist(), "")
-                st.markdown("</div>", unsafe_allow_html=True)
+                radar_chart(
+                    comp["평가 항목"].tolist(),
+                    comp["평균"].tolist(),
+                    "점수 구조 한눈에 보기"
+                )
             notice("수요·계획서·예산 적정성 세 가지 점수를 함께 반영해 순위를 정합니다.")
 
 
@@ -2175,17 +2227,10 @@ def page_application_eval(base_df: pd.DataFrame, selected_df: pd.DataFrame) -> N
             })
             bar_chart(plan_df, "평가 항목", "점수", "계획서 평가 점수", horizontal=True)
         with r:
-            metric_card("권장 예산", fmt_money(rec_budget), f"신청 예산 {fmt_money(applied)}",
-                        color="mc-orange", icon="💰")
-            plan_v2 = float(row.get('plan_score', 0) or 0)
-            metric_card("계획서 점수", f"{plan_v2:.1f}점", f"{row.get('school_level_group', '')} 내부 기준",
-                        color="mc-purple", icon="📝",
-                        badge="우수" if plan_v2 >= 70 else "보통", badge_type="up" if plan_v2 >= 70 else "neu")
+            metric_card("권장 예산", fmt_money(rec_budget), f"신청 예산 {fmt_money(applied)}")
+            metric_card("계획서 점수", f"{row.get('plan_score', 0):.1f}점", f"{row.get('school_level_group', '')} 내부 기준")
             verdict = "적정" if abs(gap_ratio) <= 0.15 else ("다소 높음" if gap_ratio > 0 else "다소 낮음")
-            v_col = "mc-green" if verdict == "적정" else "mc-red"
-            metric_card("적정성 판정", verdict, "자동 검토",
-                        color=v_col, icon="⚖️",
-                        badge=verdict, badge_type="up" if verdict == "적정" else "down")
+            metric_card("적정성 판정", verdict, "자동 검토")
             _lg = esc(row.get('school_level_group', '중등'))
             _lf = esc(', '.join(LEVEL_FOCUS.get(row.get('school_level_group', '중등'), [])))
             _sc = float(row.get('final_allocation_score', 0) or 0)
@@ -2264,24 +2309,13 @@ def page_school_report(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_df
     with m1:
         school_identity_card(row["school_name"], f"{row['region_office']} · {row['school_level_group']} · {row.get('first_choice_area_norm', '')}")
     with m2:
-        _st_color = "mc-green" if status == "선정" else "mc-orange"
-        _st_badge = "✅ 선정" if status == "선정" else "⏸ 보류"
-        metric_card("선정 상태", status, "", color=_st_color, icon="🏅",
-                    badge=_st_badge, badge_type="up" if status == "선정" else "neu")
+        metric_card("상태", status)
     with m3:
-        _sc = float(row.get('final_allocation_score') or row.get('우선 검토 점수') or 0)
-        metric_card("최종 배분 점수", f"{_sc:.1f}점", "종합 우선순위 점수",
-                    color="mc-blue", icon="🏆",
-                    badge="상위권" if _sc >= 70 else "중위권", badge_type="up" if _sc >= 70 else "neu")
+        metric_card("최종배분점수", f"{float(row.get('final_allocation_score') or row.get('우선 검토 점수') or 0):.1f}점")
     with m4:
-        metric_card("권장예산", fmt_money(row["recommended_budget"]), "기준단가×계수 산출",
-                    color="mc-orange", icon="💰")
+        metric_card("권장예산", fmt_money(row["recommended_budget"]))
     with m5:
-        _warn = row.get("warning_flag", 0) == 1
-        metric_card("자료 신뢰도", "검토 필요" if _warn else "양호",
-                    f"학교급 {row['school_level_group']} · 핵심 영역 {row.get('focus_area_top1', '')}",
-                    color="mc-red" if _warn else "mc-teal", icon="🔍",
-                    badge="확인 필요" if _warn else "정상", badge_type="down" if _warn else "up")
+        metric_card("데이터 신뢰도", "검토 필요" if row.get("warning_flag", 0) == 1 else "양호", f"학교급 {row['school_level_group']} · 핵심 영역 {row.get('focus_area_top1', '')}")
 
     if "점수 풀이" in sub:
         score_items = pd.DataFrame({
@@ -2295,13 +2329,13 @@ def page_school_report(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_df
         })
         r1, r2 = st.columns(2)
         with r1:
-            st.markdown("<div class='chart-card'><div class='chart-title'>📊 핵심 점수 구성</div>", unsafe_allow_html=True)
-            bar_chart(score_items, "항목", "점수", "", horizontal=True)
-            st.markdown("</div>", unsafe_allow_html=True)
+            bar_chart(score_items, "항목", "점수", "핵심 점수 구성", horizontal=True)
         with r2:
-            st.markdown("<div class='chart-card'><div class='chart-title'>🔷 점수 구조 레이더</div>", unsafe_allow_html=True)
-            radar_chart(score_items["항목"].tolist(), score_items["점수"].tolist(), "")
-            st.markdown("</div>", unsafe_allow_html=True)
+            radar_chart(
+                score_items["항목"].tolist(),
+                score_items["점수"].tolist(),
+                "점수 구조 한눈에 보기"
+            )
         detail = pd.DataFrame({
             "세부 항목": ["학생 규모", "긴급성", "재정 취약", "시설 취약", "지역 취약"],
             "점수": [row.get("size_pct_score", 0), row.get("urgent_pct_score", 0), row.get("finance_pct_score", 0), row.get("facility_pct_score", 0), row.get("region_pct_score", 0)],
@@ -2591,33 +2625,21 @@ def page_quality(base_df: pd.DataFrame) -> None:
 
         c1, c2, c3, c4 = st.columns(4)
         with c1:
-            metric_card("분석 대상", f"{len(base_df):,}개교", "현재 교육청·학교급 조건",
-                        color="mc-blue", icon="🏫")
+            metric_card("분석 대상", f"{len(base_df):,}개교", "현재 교육청·학교급 조건")
         with c2:
-            metric_card("원자료 미입력", f"{total_missing:,}건", f"최다 항목: {top_missing_label}",
-                        color="mc-orange" if total_missing > 0 else "mc-green", icon="📋",
-                        badge="없음 ✅" if total_missing == 0 else f"{total_missing}건", badge_type="up" if total_missing == 0 else "down")
+            metric_card("원자료 미입력", f"{total_missing:,}건", f"최다 항목: {top_missing_label}")
         with c3:
-            metric_card("보완값 사용", f"{unique_filled_schools:,}개교", f"항목-학교 기준 {total_filled_cells:,}건",
-                        color="mc-purple" if unique_filled_schools > 0 else "mc-green", icon="🔧",
-                        badge="보완 있음" if unique_filled_schools > 0 else "없음", badge_type="neu" if unique_filled_schools > 0 else "up")
+            metric_card("보완값 사용", f"{unique_filled_schools:,}개교", f"항목-학교 기준 {total_filled_cells:,}건")
         with c4:
-            metric_card("확인 필요 학교", f"{warning_count:,}개교", "탈락 기준이 아닌 점검 목록",
-                        color="mc-red" if warning_count > 5 else "mc-teal", icon="⚠️",
-                        badge="주의" if warning_count > 5 else "양호", badge_type="down" if warning_count > 5 else "up")
+            metric_card("확인 필요 학교", f"{warning_count:,}개교", "탈락 기준이 아닌 점검 목록")
 
-        st.markdown(
-            "<div style='font-size:1rem;font-weight:800;color:#0D2D52;"
-            "margin:0.9rem 0 0.6rem;font-family:Pretendard,sans-serif;'>"
-            "✅ 이 화면에서 확인할 3가지</div>",
-            unsafe_allow_html=True,
-        )
+        st.markdown("#### 이 화면에서 확인할 3가지")
         a, b, c = st.columns(3)
         with a:
             st.markdown(
                 """
-                <div class='logic-box' style='border-top:3px solid #EA580C;'>
-                    <div class='logic-title' style='color:#EA580C;'>📋 원자료 결측</div>
+                <div class='logic-box'>
+                    <div class='logic-title'>1. 원자료 결측</div>
                     <div class='logic-desc'>CSV에 값이 비어 있는 항목입니다. 0점 처리하지 않고 원자료 확인 또는 보완 대상으로 봅니다.</div>
                 </div>
                 """,
@@ -2626,8 +2648,8 @@ def page_quality(base_df: pd.DataFrame) -> None:
         with b:
             st.markdown(
                 """
-                <div class='logic-box' style='border-top:3px solid #7C3AED;'>
-                    <div class='logic-title' style='color:#7C3AED;'>🔧 보완값 사용</div>
+                <div class='logic-box'>
+                    <div class='logic-title'>2. 보완값 사용</div>
                     <div class='logic-desc'>평균·중앙값·학교급 기준값 등으로 대체한 값입니다. 분석은 가능하지만 실제 집행 전 근거 확인이 필요합니다.</div>
                 </div>
                 """,
@@ -2636,8 +2658,8 @@ def page_quality(base_df: pd.DataFrame) -> None:
         with c:
             st.markdown(
                 """
-                <div class='logic-box' style='border-top:3px solid #DC2626;'>
-                    <div class='logic-title' style='color:#DC2626;'>⚠️ 확인 필요 학교</div>
+                <div class='logic-box'>
+                    <div class='logic-title'>3. 확인 필요 학교</div>
                     <div class='logic-desc'>이상치·핵심 항목 부족 등 담당자 검토가 필요한 학교입니다. 자동 제외나 탈락을 뜻하지 않습니다.</div>
                 </div>
                 """,
@@ -2823,27 +2845,6 @@ def main() -> None:
         unsafe_allow_html=True,
     )
 
-    # ── 히어로 배너 ──
-    st.markdown(
-        """
-        <div class='hero-banner'>
-            <div style='display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; position:relative; z-index:1;'>
-                <div style='flex:1 1 500px;'>
-                    <div class='hero-badge'>🏫 교육 공공데이터 기반 학교지원 의사결정 서비스</div>
-                    <div class='hero-title'>ULTRA 학교지원<br>우선순위 추천 서비스</div>
-                    <div class='hero-sub'>학교별 수요·계획서·예산 적정성을 함께 살펴보고,<br>어떤 학교를 왜 먼저 지원할지 근거와 함께 안내합니다.</div>
-                </div>
-                <div class='hero-stat'>
-                    <div class='hero-stat-item'><div class='hero-stat-num'>3</div><div class='hero-stat-label'>학교급별<br>분리 계산</div></div>
-                    <div class='hero-stat-item'><div class='hero-stat-num'>6</div><div class='hero-stat-label'>지원 영역<br>자동 분류</div></div>
-                    <div class='hero-stat-item'><div class='hero-stat-num'>AI</div><div class='hero-stat-label'>권장예산<br>자동 산출</div></div>
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
     st.markdown("<div class='top-nav-host'>", unsafe_allow_html=True)
     page = nav_buttons(
         ["📊 결과 한눈에 보기", "⚙️ 지원 기준 설정", "🏫 학교별 평가·예산", "📋 학교 상세 보기", "🔍 자료 신뢰도 확인"],
@@ -2913,22 +2914,6 @@ def main() -> None:
         return " / ".join(reasons) if reasons else ""
 
     df["warning_reason"] = df.apply(_warning_reason_for_row, axis=1)
-
-    # ── 사이드바 브랜드 헤더 ──
-    with st.sidebar:
-        st.markdown(
-            """
-            <div style='text-align:center; padding:0.5rem 0 1.2rem;
-                 border-bottom:1px solid rgba(255,255,255,0.12); margin-bottom:1rem;'>
-                <div style='font-size:1.5rem; font-weight:900; color:#38BDF8;
-                     letter-spacing:-0.02em; font-family:Pretendard,sans-serif;'>ULTRA</div>
-                <div style='font-size:0.78rem; color:#94A3B8; margin-top:0.2rem;'>
-                    학교지원 우선순위 추천 서비스
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
 
     render_global_filters(df)
 
