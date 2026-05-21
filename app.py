@@ -2203,42 +2203,43 @@ def _overview_insight_bar(base_df, selected_df, hold_df, remaining):
         },
     ]
 
+    # 단일 HTML 블록으로 렌더링 — st.columns() 사용 시 Streamlit이 배경을 덮어써서
+    # 흰 텍스트가 보이지 않는 문제를 방지
+    cards_html = ""
+    for ins in insights:
+        body_html = ins["body"].replace("\n", "<br>")
+        cards_html += f"""
+        <div style='flex:1;background:rgba(255,255,255,0.13);border:1px solid rgba(255,255,255,0.25);
+                    border-radius:12px;padding:0.75rem 0.85rem;min-width:0;'>
+          <div style='display:flex;align-items:center;gap:0.45rem;margin-bottom:0.4rem;'>
+            <div style='width:26px;height:26px;border-radius:8px;background:{ins["icon_bg"]};
+                        display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;'>
+              {ins["icon"]}
+            </div>
+            <div style='font-size:0.75rem;font-weight:800;color:#ffffff;line-height:1.25;'>{ins["title"]}</div>
+          </div>
+          <div style='font-size:0.72rem;color:rgba(255,255,255,0.92);line-height:1.6;'>{body_html}</div>
+        </div>"""
+
     st.markdown(
-        "<div style='background:linear-gradient(110deg,#1a3a5c 0%,#0064c8 60%,#00a0e9 100%);"
-        "border-radius:14px;padding:1.1rem 1.4rem;margin-top:0.7rem;"
-        "box-shadow:0 4px 20px rgba(0,80,180,0.18);'>",
+        f"""
+        <div style='background:linear-gradient(110deg,#1a3a5c 0%,#0064c8 60%,#00a0e9 100%);
+                    border-radius:14px;padding:1.1rem 1.4rem;margin-top:0.7rem;
+                    box-shadow:0 4px 20px rgba(0,80,180,0.18);
+                    display:flex;gap:0.8rem;align-items:stretch;'>
+          <div style='display:flex;flex-direction:column;justify-content:center;
+                      min-width:80px;flex-shrink:0;padding-right:0.5rem;
+                      border-right:1px solid rgba(255,255,255,0.2);margin-right:0.2rem;'>
+            <div style='font-size:1.25rem;font-weight:900;color:#fff;line-height:1.25;
+                        font-family:Pretendard,Noto Sans KR,sans-serif;letter-spacing:-0.03em;'>
+              핵심<br>인사이트
+            </div>
+          </div>
+          {cards_html}
+        </div>
+        """,
         unsafe_allow_html=True,
     )
-    title_col, *insight_cols = st.columns([0.7] + [1] * 5)
-    with title_col:
-        st.markdown(
-            "<div style='display:flex;flex-direction:column;justify-content:center;height:100%;'>"
-            "<div style='font-size:1.3rem;font-weight:900;color:#fff;line-height:1.2;"
-            "font-family:Pretendard,sans-serif;letter-spacing:-0.03em;'>핵심<br>인사이트</div>"
-            "</div>",
-            unsafe_allow_html=True,
-        )
-    for col, ins in zip(insight_cols, insights):
-        with col:
-            body_html = ins["body"].replace("\n", "<br>")
-            st.markdown(
-                f"""
-                <div style='background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.22);
-                            border-radius:12px;padding:0.75rem 0.85rem;height:100%;
-                            backdrop-filter:blur(6px);'>
-                  <div style='display:flex;align-items:center;gap:0.45rem;margin-bottom:0.4rem;'>
-                    <div style='width:26px;height:26px;border-radius:8px;background:{ins["icon_bg"]};
-                                display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;'>
-                      {ins["icon"]}
-                    </div>
-                    <div style='font-size:0.75rem;font-weight:800;color:#ffffff;line-height:1.25;'>{ins["title"]}</div>
-                  </div>
-                  <div style='font-size:0.72rem;color:rgba(255,255,255,0.88);line-height:1.55;'>{body_html}</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def page_result_overview(base_df: pd.DataFrame, selected_df: pd.DataFrame, hold_df: pd.DataFrame, remaining: float) -> None:
